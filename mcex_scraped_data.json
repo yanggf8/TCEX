@@ -1,0 +1,988 @@
+[
+  {
+    "url": "https://mcex.mo/tc",
+    "title": "MCEX - First Licensed Global Exchange for RBF",
+    "nav_structure": [],
+    "sections": [
+      {
+        "class": "flex flex-col min-h-screen",
+        "text": "首頁產品掛牌市場聯通服務資源關於M-TerminalEN產品總覽RBOSPVSPACETF掛牌掛牌內容如何掛牌市場聯通市場參與費用交易日曆交易時間服務登記與託管清算與結算業績參數第三方信用評級跨境資金通道估值方法稅務處理資源規則與監管市場通訊市場支持檔案資源關於創始人網誌媒體中心招聘企業社會責任財務報告聯絡M-TerminalEN滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通"
+      },
+      {
+        "class": "Header_header__FTkB5",
+        "text": "首頁產品掛牌市場聯通服務資源關於M-TerminalEN"
+      },
+      {
+        "class": "flex items-center",
+        "text": "首頁產品掛牌市場聯通服務資源關於"
+      },
+      {
+        "class": "NavigationBar_navigationBarContainer__Lccvf text-[#F7F8FA] NavigationBar_transparentNavigationBarContainer__yEnjM",
+        "text": "首頁產品掛牌市場聯通服務資源關於"
+      },
+      {
+        "class": "NavigationBar_navItemContent__uw_hW NavigationBar_noChildrenNavItemContent__8BxKj NavigationBar_activeNavItemContent__GfPXu",
+        "text": "首頁"
+      },
+      {
+        "class": "NavigationBar_navItemContent__uw_hW",
+        "text": "產品"
+      },
+      {
+        "class": "NavigationBar_navItemContent__uw_hW",
+        "text": "掛牌"
+      },
+      {
+        "class": "NavigationBar_navItemContent__uw_hW",
+        "text": "市場聯通"
+      },
+      {
+        "class": "NavigationBar_navItemContent__uw_hW",
+        "text": "服務"
+      },
+      {
+        "class": "NavigationBar_navItemContent__uw_hW",
+        "text": "資源"
+      },
+      {
+        "class": "NavigationBar_navItemContent__uw_hW",
+        "text": "關於"
+      },
+      {
+        "class": "flex items-center Header_pcNavigationRight__NeZSG",
+        "text": "M-TerminalEN"
+      },
+      {
+        "class": "LocaleChaner_activeLocale__nyBkF Header_backgroundItem__kPpq_ Header_transparentBackgroundItem__1e_lz",
+        "text": "EN"
+      },
+      {
+        "class": "flex items-center Header_mobileNavigationRight__nD_3Q",
+        "text": ""
+      },
+      {
+        "class": "Drawer_drawerContainer__3FrAN NavigationDrawer_navigationDrawer__Sn7pZ",
+        "text": "產品總覽RBOSPVSPACETF掛牌掛牌內容如何掛牌市場聯通市場參與費用交易日曆交易時間服務登記與託管清算與結算業績參數第三方信用評級跨境資金通道估值方法稅務處理資源規則與監管市場通訊市場支持檔案資源關於創始人網誌媒體中心招聘企業社會責任財務報告聯絡M-TerminalEN"
+      },
+      {
+        "class": "Drawer_drawerContent__cHbOU left",
+        "text": "產品總覽RBOSPVSPACETF掛牌掛牌內容如何掛牌市場聯通市場參與費用交易日曆交易時間服務登記與託管清算與結算業績參數第三方信用評級跨境資金通道估值方法稅務處理資源規則與監管市場通訊市場支持檔案資源關於創始人網誌媒體中心招聘企業社會責任財務報告聯絡M-TerminalEN"
+      },
+      {
+        "class": "NavigationDrawer_navigationDrawerHeader___HqJa",
+        "text": ""
+      },
+      {
+        "class": "NavigationDrawer_homeContainer__4O3u6",
+        "text": ""
+      },
+      {
+        "class": "NavigationDrawer_navigationDrawerContent__mgE18",
+        "text": "產品總覽RBOSPVSPACETF掛牌掛牌內容如何掛牌市場聯通市場參與費用交易日曆交易時間服務登記與託管清算與結算業績參數第三方信用評級跨境資金通道估值方法稅務處理資源規則與監管市場通訊市場支持檔案資源關於創始人網誌媒體中心招聘企業社會責任財務報告聯絡"
+      },
+      {
+        "class": "Collapse_collapse__uyfTp NavigationDrawer_collapse__6KFaS",
+        "text": "產品總覽RBOSPVSPACETF掛牌掛牌內容如何掛牌市場聯通市場參與費用交易日曆交易時間服務登記與託管清算與結算業績參數第三方信用評級跨境資金通道估值方法稅務處理資源規則與監管市場通訊市場支持檔案資源關於創始人網誌媒體中心招聘企業社會責任財務報告聯絡"
+      },
+      {
+        "class": "Collapse_header__MdXPO",
+        "text": "產品"
+      },
+      {
+        "class": "Collapse_headerContent__Peymj",
+        "text": "產品"
+      },
+      {
+        "class": "Collapse_content__2Kc0k Collapse_closed__YgOmu",
+        "text": "總覽RBOSPVSPACETF"
+      },
+      {
+        "class": "NavigationDrawer_menuList__lMtL5",
+        "text": "總覽RBOSPVSPACETF"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "總覽"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "總覽"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "總覽"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "RBO"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "RBO"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "RBO"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "SPV"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "SPV"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "SPV"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "SPAC"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "SPAC"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "SPAC"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "ETF"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "ETF"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "ETF"
+      },
+      {
+        "class": "Collapse_header__MdXPO",
+        "text": "掛牌"
+      },
+      {
+        "class": "Collapse_headerContent__Peymj",
+        "text": "掛牌"
+      },
+      {
+        "class": "Collapse_content__2Kc0k Collapse_closed__YgOmu",
+        "text": "掛牌內容如何掛牌"
+      },
+      {
+        "class": "NavigationDrawer_menuList__lMtL5",
+        "text": "掛牌內容如何掛牌"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "掛牌內容"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "掛牌內容"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "掛牌內容"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "如何掛牌"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "如何掛牌"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "如何掛牌"
+      },
+      {
+        "class": "Collapse_header__MdXPO",
+        "text": "市場聯通"
+      },
+      {
+        "class": "Collapse_headerContent__Peymj",
+        "text": "市場聯通"
+      },
+      {
+        "class": "Collapse_content__2Kc0k Collapse_closed__YgOmu",
+        "text": "市場參與費用交易日曆交易時間"
+      },
+      {
+        "class": "NavigationDrawer_menuList__lMtL5",
+        "text": "市場參與費用交易日曆交易時間"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "市場參與"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "市場參與"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "市場參與"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "費用"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "費用"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "費用"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "交易日曆"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "交易日曆"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "交易日曆"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "交易時間"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "交易時間"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "交易時間"
+      },
+      {
+        "class": "Collapse_header__MdXPO",
+        "text": "服務"
+      },
+      {
+        "class": "Collapse_headerContent__Peymj",
+        "text": "服務"
+      },
+      {
+        "class": "Collapse_content__2Kc0k Collapse_closed__YgOmu",
+        "text": "登記與託管清算與結算業績參數第三方信用評級跨境資金通道估值方法稅務處理"
+      },
+      {
+        "class": "NavigationDrawer_menuList__lMtL5",
+        "text": "登記與託管清算與結算業績參數第三方信用評級跨境資金通道估值方法稅務處理"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "登記與託管"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "登記與託管"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "登記與託管"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "清算與結算"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "清算與結算"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "清算與結算"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "業績參數"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "業績參數"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "業績參數"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "第三方信用評級"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "第三方信用評級"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "第三方信用評級"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "跨境資金通道"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "跨境資金通道"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "跨境資金通道"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "估值方法"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "估值方法"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "估值方法"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "稅務處理"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "稅務處理"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "稅務處理"
+      },
+      {
+        "class": "Collapse_header__MdXPO",
+        "text": "資源"
+      },
+      {
+        "class": "Collapse_headerContent__Peymj",
+        "text": "資源"
+      },
+      {
+        "class": "Collapse_content__2Kc0k Collapse_closed__YgOmu",
+        "text": "規則與監管市場通訊市場支持檔案資源"
+      },
+      {
+        "class": "NavigationDrawer_menuList__lMtL5",
+        "text": "規則與監管市場通訊市場支持檔案資源"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "規則與監管"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "規則與監管"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "規則與監管"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "市場通訊"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "市場通訊"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "市場通訊"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "市場支持"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "市場支持"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "市場支持"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "檔案資源"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "檔案資源"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "檔案資源"
+      },
+      {
+        "class": "Collapse_header__MdXPO",
+        "text": "關於"
+      },
+      {
+        "class": "Collapse_headerContent__Peymj",
+        "text": "關於"
+      },
+      {
+        "class": "Collapse_content__2Kc0k Collapse_closed__YgOmu",
+        "text": "創始人網誌媒體中心招聘企業社會責任財務報告聯絡"
+      },
+      {
+        "class": "NavigationDrawer_menuList__lMtL5",
+        "text": "創始人網誌媒體中心招聘企業社會責任財務報告聯絡"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "創始人網誌"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "創始人網誌"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "創始人網誌"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "媒體中心"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "媒體中心"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "媒體中心"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "招聘"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "招聘"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "招聘"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "企業社會責任"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "企業社會責任"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "企業社會責任"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "財務報告"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "財務報告"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "財務報告"
+      },
+      {
+        "class": "NavigationDrawer_menuItem__4sx8A",
+        "text": "聯絡"
+      },
+      {
+        "class": "AnimationUnderlineLink_animationUnderlineLink__j0JC1",
+        "text": "聯絡"
+      },
+      {
+        "class": "AnimationUnderlineLink_linkContent__0A6ZC",
+        "text": "聯絡"
+      },
+      {
+        "class": "NavigationDrawer_navigationDrawerFooter__U_TDX",
+        "text": "M-TerminalEN"
+      },
+      {
+        "class": "LocaleChaner_activeLocale__nyBkF NavigationDrawer_localeChanger__7I84r",
+        "text": "EN"
+      },
+      {
+        "class": "_locale__mobileView__hiiQr",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業統計數據數據截止日期：2026-02-0857.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）累計掛牌數據截止日期：2026-02-08136 個SPV數"
+      },
+      {
+        "class": "OverviewBanner_overviewBanner__xJT4X",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO OverviewBanner_overviewBannerContent__UvmXG",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業"
+      },
+      {
+        "class": "mb-4",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業"
+      },
+      {
+        "class": "OverviewBanner_title__dZIha",
+        "text": "滴灌通（澳門）金融資產交易所"
+      },
+      {
+        "class": "OverviewBanner_desc__szU7y",
+        "text": "作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO MarketOverview_marketMap__kd1Dl mx-auto",
+        "text": "統計數據數據截止日期：2026-02-0857.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）累計掛牌數據截止日期：2026-02-08136 個SPV數量104 個SPAC數量13,961 個底層資產數量"
+      },
+      {
+        "class": "MarketOverview_header__Np_7V",
+        "text": "統計數據數據截止日期：2026-02-08"
+      },
+      {
+        "class": "MarketOverview_content__n2HP_",
+        "text": "57.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）"
+      },
+      {
+        "class": "MarketOverview_statisticsGrid__1qYtI",
+        "text": "57.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）"
+      },
+      {
+        "class": "Statistics_statistics__N9tPR",
+        "text": "57.75億累計融資金額（MOP）"
+      },
+      {
+        "class": "Statistics_value__0Fo6n",
+        "text": "57.75億"
+      },
+      {
+        "class": "Statistics_description__HSzY0",
+        "text": "累計融資金額（MOP）"
+      },
+      {
+        "class": "Statistics_statistics__N9tPR MarketOverview_primaryStatistics__lgyJl",
+        "text": "1,055,897.79當日融資金額（RMB）"
+      },
+      {
+        "class": "Statistics_value__0Fo6n MarketOverview_primaryStatisticsValue__B_dEy",
+        "text": "1,055,897.79"
+      },
+      {
+        "class": "Statistics_description__HSzY0",
+        "text": "當日融資金額（RMB）"
+      },
+      {
+        "class": "Statistics_statistics__N9tPR",
+        "text": "38.92億累計收入分成金額（MOP）"
+      },
+      {
+        "class": "Statistics_value__0Fo6n",
+        "text": "38.92億"
+      },
+      {
+        "class": "Statistics_description__HSzY0",
+        "text": "累計收入分成金額（MOP）"
+      },
+      {
+        "class": "Statistics_statistics__N9tPR MarketOverview_primaryStatistics__lgyJl",
+        "text": "2,332,703.10當日收入分成金額（MOP）"
+      },
+      {
+        "class": "Statistics_value__0Fo6n MarketOverview_primaryStatisticsValue__B_dEy",
+        "text": "2,332,703.10"
+      },
+      {
+        "class": "Statistics_description__HSzY0",
+        "text": "當日收入分成金額（MOP）"
+      },
+      {
+        "class": "MarketOverview_header__Np_7V mt-[30px]",
+        "text": "累計掛牌數據截止日期：2026-02-08"
+      },
+      {
+        "class": "MarketOverview_content__n2HP_",
+        "text": "136 個SPV數量104 個SPAC數量13,961 個底層資產數量"
+      },
+      {
+        "class": "MarketOverview_statisticsGrid__1qYtI",
+        "text": "136 個SPV數量104 個SPAC數量13,961 個底層資產數量"
+      },
+      {
+        "class": "Statistics_statistics__N9tPR MarketOverview_primaryStatistics__lgyJl",
+        "text": "136 個SPV數量"
+      },
+      {
+        "class": "Statistics_value__0Fo6n MarketOverview_primaryStatisticsValue__B_dEy",
+        "text": "136 個"
+      },
+      {
+        "class": "Statistics_description__HSzY0",
+        "text": "SPV數量"
+      },
+      {
+        "class": "Statistics_statistics__N9tPR MarketOverview_primaryStatistics__lgyJl",
+        "text": "104 個SPAC數量"
+      },
+      {
+        "class": "Statistics_value__0Fo6n MarketOverview_primaryStatisticsValue__B_dEy",
+        "text": "104 個"
+      },
+      {
+        "class": "Statistics_description__HSzY0",
+        "text": "SPAC數量"
+      },
+      {
+        "class": "MarketOverview_fullWidth__rHNOB",
+        "text": "13,961 個底層資產數量"
+      },
+      {
+        "class": "Statistics_statistics__N9tPR h-full",
+        "text": "13,961 個底層資產數量"
+      },
+      {
+        "class": "Statistics_value__0Fo6n",
+        "text": "13,961 個"
+      },
+      {
+        "class": "Statistics_description__HSzY0",
+        "text": "底層資產數量"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO FounderTalkBar_founderTalkBar__Lq29g",
+        "text": "創始人說暂無文章"
+      },
+      {
+        "class": "FounderTalkBar_top__2vXjt",
+        "text": "創始人說"
+      },
+      {
+        "class": "FounderTalkBar_title__Ly6rX",
+        "text": "創始人說"
+      },
+      {
+        "class": "w-full h-full flex flex-col items-center justify-center min-h-[373px]",
+        "text": "暂無文章"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO About_about__bgJL5 py-[30px]",
+        "text": "關於滴灌通（澳門）金融資產交易所滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模"
+      },
+      {
+        "class": "About_aboutContent__SQ5UA",
+        "text": "關於滴灌通（澳門）金融資產交易所滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模"
+      },
+      {
+        "class": "",
+        "text": "關於滴灌通（澳門）金融資產交易所滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模"
+      },
+      {
+        "class": "space-y-7 text-sm",
+        "text": "滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模式，中小微企業得以在滴灌通澳交所"
+      },
+      {
+        "class": "_locale__pcView__jdi5y",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業M-Terminal57.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）數據截止日期：2026-02-08Your browser does not su"
+      },
+      {
+        "class": "OverviewBanner_overviewBanner__aMIDv",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業M-Terminal57.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）數據截止日期：2026-02-08"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO OverviewBanner_overviewBannerContent__BPpnY",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業M-Terminal57.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）數據截止日期：2026-02-08"
+      },
+      {
+        "class": "OverviewBanner_left__43i8t",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業M-Terminal"
+      },
+      {
+        "class": "mb-4",
+        "text": "滴灌通（澳門）金融資產交易所作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業"
+      },
+      {
+        "class": "OverviewBanner_title__3gjnh",
+        "text": "滴灌通（澳門）金融資產交易所"
+      },
+      {
+        "class": "OverviewBanner_desc__A_8lJ",
+        "text": "作為全球首家持牌的收入分成交易所，滴灌通澳交所（MCEX）致力於以數字化的方式連接國際資本與中小微企業"
+      },
+      {
+        "class": "OverviewBanner_btnIcon__DWIMh",
+        "text": ""
+      },
+      {
+        "class": "OverviewBanner_right__tkC_b",
+        "text": "57.75億累計融資金額（MOP）1,055,897.79當日融資金額（RMB）38.92億累計收入分成金額（MOP）2,332,703.10當日收入分成金額（MOP）"
+      },
+      {
+        "class": "OverviewBanner_card__DoOnA",
+        "text": "57.75億累計融資金額（MOP）"
+      },
+      {
+        "class": "OverviewBanner_number__8G2XE",
+        "text": "57.75億"
+      },
+      {
+        "class": "OverviewBanner_text__TS6sF",
+        "text": "累計融資金額（MOP）"
+      },
+      {
+        "class": "OverviewBanner_card__DoOnA",
+        "text": "1,055,897.79當日融資金額（RMB）"
+      },
+      {
+        "class": "OverviewBanner_number__8G2XE !text-[#00D29E]",
+        "text": "1,055,897.79"
+      },
+      {
+        "class": "OverviewBanner_text__TS6sF",
+        "text": "當日融資金額（RMB）"
+      },
+      {
+        "class": "OverviewBanner_card__DoOnA",
+        "text": "38.92億累計收入分成金額（MOP）"
+      },
+      {
+        "class": "OverviewBanner_number__8G2XE",
+        "text": "38.92億"
+      },
+      {
+        "class": "OverviewBanner_text__TS6sF",
+        "text": "累計收入分成金額（MOP）"
+      },
+      {
+        "class": "OverviewBanner_card__DoOnA",
+        "text": "2,332,703.10當日收入分成金額（MOP）"
+      },
+      {
+        "class": "OverviewBanner_number__8G2XE !text-[#00D29E]",
+        "text": "2,332,703.10"
+      },
+      {
+        "class": "OverviewBanner_text__TS6sF",
+        "text": "當日收入分成金額（MOP）"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO MarketOverview_marketMap__X8aPh mx-auto",
+        "text": "市場預覽已參與滴灌通澳交所的底層資產所屬地區累計掛牌數據截止日期：2026-02-08136 個SPV數量104 個SPAC數量13,961 個底層資產數量"
+      },
+      {
+        "class": "MarketOverview_header__UMlpj",
+        "text": "市場預覽已參與滴灌通澳交所的底層資產所屬地區累計掛牌數據截止日期：2026-02-08"
+      },
+      {
+        "class": "MarketOverview_content__Zpjlf",
+        "text": "136 個SPV數量104 個SPAC數量13,961 個底層資產數量"
+      },
+      {
+        "class": "MarketOverview_worldMap__GcGgt",
+        "text": ""
+      },
+      {
+        "class": "MarketOverview_statisticsGrid__vh78M",
+        "text": "136 個SPV數量104 個SPAC數量13,961 個底層資產數量"
+      },
+      {
+        "class": "Statistics_statistics__OJz9g MarketOverview_primaryStatistics__v6gQO",
+        "text": "136 個SPV數量"
+      },
+      {
+        "class": "Statistics_value__fIj4u MarketOverview_primaryStatisticsValue__37wz_",
+        "text": "136 個"
+      },
+      {
+        "class": "Statistics_description__uhWBU",
+        "text": "SPV數量"
+      },
+      {
+        "class": "Statistics_statistics__OJz9g MarketOverview_primaryStatistics__v6gQO",
+        "text": "104 個SPAC數量"
+      },
+      {
+        "class": "Statistics_value__fIj4u MarketOverview_primaryStatisticsValue__37wz_",
+        "text": "104 個"
+      },
+      {
+        "class": "Statistics_description__uhWBU",
+        "text": "SPAC數量"
+      },
+      {
+        "class": "MarketOverview_fullWidth__oqMal",
+        "text": "13,961 個底層資產數量"
+      },
+      {
+        "class": "Statistics_statistics__OJz9g h-full",
+        "text": "13,961 個底層資產數量"
+      },
+      {
+        "class": "Statistics_value__fIj4u",
+        "text": "13,961 個"
+      },
+      {
+        "class": "Statistics_description__uhWBU",
+        "text": "底層資產數量"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO FounderTalkBar_founderTalkBar__jDcZO",
+        "text": "創始人說暂無文章"
+      },
+      {
+        "class": "FounderTalkBar_top__gWBXv",
+        "text": "創始人說"
+      },
+      {
+        "class": "FounderTalkBar_title__Gx01E",
+        "text": "創始人說"
+      },
+      {
+        "class": "FounderTalkBar_bottom__URuGG",
+        "text": "暂無文章"
+      },
+      {
+        "class": "w-full h-full flex flex-col items-center justify-center min-h-[373px]",
+        "text": "暂無文章"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO About_about__IGB5P h-[612px] py-[80px]",
+        "text": "關於滴灌通（澳門）金融資產交易所滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模"
+      },
+      {
+        "class": "About_aboutContent__CQ7_1",
+        "text": "關於滴灌通（澳門）金融資產交易所滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模"
+      },
+      {
+        "class": "mr-[114px]",
+        "text": "關於滴灌通（澳門）金融資產交易所滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模"
+      },
+      {
+        "class": "text-[#6D758F] space-y-7",
+        "text": "滴灌通（澳門）金融資產交易所（簡稱「滴灌通澳交所」或 MCEX）是全球首個持牌的收入分成交易所。滴灌通澳交所在數字時代大背景之下，根據中華人民共和國澳門特別行政區2022年12月5日第47/2022號行政命令在澳門設立和運作，是專注中小微企業收入分成的交易所。滴灌通澳交所提供金融資產交易服務，旨在用數字化的方式，將國際資本精准連接到全球小微企業。透過創新的收入分成模式，中小微企業得以在滴灌通澳交所"
+      },
+      {
+        "class": "BlockContainer_wrapper__WLiKO Footer_footer__WnytU",
+        "text": "WeChatLinkedInM-Terminal滴灌之星系統免責聲明聲明一般問詢：info@mcex.mo媒體聯絡：media@mcex.mo招聘聯絡：recruit@mcex.mo電話聯絡：853-2883-2388版權聲明@投資者應注意，投資MCEX上產品的投資風險，包括可能損失投資本金。MCEX受澳門金融管理局監管。公司註冊號 [SO97314]。本網站受 reCAPTCHA 保護，並適用 "
+      },
+      {
+        "class": "Img_img__IyCnK",
+        "text": ""
+      },
+      {
+        "class": "LogoLinks_logoContainer__RKQrU",
+        "text": ""
+      },
+      {
+        "class": "LogoLinks_logoContainer__RKQrU",
+        "text": ""
+      },
+      {
+        "class": "Footer_links__XX_sq",
+        "text": "M-Terminal滴灌之星系統免責聲明聲明"
+      },
+      {
+        "class": "Footer_contacts__jKWhc",
+        "text": "一般問詢：info@mcex.mo媒體聯絡：media@mcex.mo招聘聯絡：recruit@mcex.mo電話聯絡：853-2883-2388"
+      },
+      {
+        "class": "ContactItem_contactItem__HB8zw mt-[12px]",
+        "text": "一般問詢：info@mcex.mo"
+      },
+      {
+        "class": "flex items-center",
+        "text": "一般問詢："
+      },
+      {
+        "class": "!text-[#F7F8FA]",
+        "text": "一般問詢："
+      },
+      {
+        "class": "ContactItem_link__j9fpw !text-[#F7F8FA]",
+        "text": "info@mcex.mo"
+      },
+      {
+        "class": "ContactItem_contactItem__HB8zw mt-[12px]",
+        "text": "媒體聯絡：media@mcex.mo"
+      },
+      {
+        "class": "flex items-center",
+        "text": "媒體聯絡："
+      },
+      {
+        "class": "!text-[#F7F8FA]",
+        "text": "媒體聯絡："
+      },
+      {
+        "class": "ContactItem_link__j9fpw !text-[#F7F8FA]",
+        "text": "media@mcex.mo"
+      },
+      {
+        "class": "ContactItem_contactItem__HB8zw mt-[12px]",
+        "text": "招聘聯絡：recruit@mcex.mo"
+      },
+      {
+        "class": "flex items-center",
+        "text": "招聘聯絡："
+      },
+      {
+        "class": "!text-[#F7F8FA]",
+        "text": "招聘聯絡："
+      },
+      {
+        "class": "ContactItem_link__j9fpw !text-[#F7F8FA]",
+        "text": "recruit@mcex.mo"
+      },
+      {
+        "class": "ContactItem_contactItem__HB8zw mt-[12px]",
+        "text": "電話聯絡：853-2883-2388"
+      },
+      {
+        "class": "flex items-center",
+        "text": "電話聯絡："
+      },
+      {
+        "class": "!text-[#F7F8FA]",
+        "text": "電話聯絡："
+      },
+      {
+        "class": "ContactItem_link__j9fpw !text-[#F7F8FA]",
+        "text": "853-2883-2388"
+      },
+      {
+        "class": "Footer_copyright__yMIl3",
+        "text": "版權聲明@投資者應注意，投資MCEX上產品的投資風險，包括可能損失投資本金。MCEX受澳門金融管理局監管。公司註冊號 [SO97314]。本網站受 reCAPTCHA 保護，並適用 Google 隱私政策和服務條款。"
+      }
+    ],
+    "stats": [
+      "0857.75億",
+      "38.92億",
+      "08136 個",
+      "104 個",
+      "13,961 個",
+      "57.75億",
+      "38.92億",
+      "08136 個",
+      "104 個",
+      "13,961 個"
+    ],
+    "links": [
+      "https://mcex.mo/tc/guide/product/overview"
+    ]
+  }
+]
