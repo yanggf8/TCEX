@@ -67,13 +67,48 @@ TCEX/
 - **Hosting**: GCP asia-east1 (Taiwan) — mandatory for financial data
 - **Portal/CDN**: Cloudflare Pages + Workers (global edge)
 
-## Next Steps
+## Roadmap (Solo Developer + CEO)
 
-1. Initialize SvelteKit project with Tailwind + Cloudflare adapter + i18n
-2. Build component library (StatCard, Header, Navigation, etc.)
-3. Implement portal pages (homepage, markets, about)
-4. Set up Go API gateway with auth middleware
-5. Build matching engine prototype
-6. Integrate WebSocket real-time data
-7. KYC flow implementation
-8. FSC sandbox application preparation
+### Phase 1 — Public Portal (ship a live site first)
+
+| Step | Task | Deliverable |
+|------|------|-------------|
+| 1.1 | Init SvelteKit + Tailwind + `adapter-cloudflare` | Project scaffold, dev server |
+| 1.2 | Set up i18n (`zh-TW` / `en`) + Noto Sans TC font | Bilingual routing, translation files |
+| 1.3 | Build shared layout: Header, Footer, MobileDrawer | Site-wide navigation |
+| 1.4 | Build homepage: Hero, StatCard, ProductCard, TrustBadge | Trust-first landing page |
+| 1.5 | Build static pages: About, Contact, Products, Rules | Content pages (prerendered) |
+| 1.6 | Deploy to Cloudflare Pages | **Live URL to share with partners** |
+
+### Phase 2 — Auth + User System
+
+| Step | Task | Deliverable |
+|------|------|-------------|
+| 2.1 | Set up Go API gateway (REST, JWT) | Backend foundation on GCP Taiwan |
+| 2.2 | Registration + login (email/password) | Basic auth flow |
+| 2.3 | LINE Login OAuth | Social login for Taiwan users |
+| 2.4 | 2FA (TOTP via Google Authenticator) | Mandatory for trading |
+| 2.5 | KYC flow (L0→L1→L2: email → phone → ID) | Identity verification pipeline |
+| 2.6 | User dashboard shell (layout, sidebar) | Authenticated area scaffold |
+
+### Phase 3 — Trading Core
+
+| Step | Task | Deliverable |
+|------|------|-------------|
+| 3.1 | PostgreSQL schema on GCP Taiwan | Database with RLS |
+| 3.2 | Listings API (CRUD, search, detail) | Product catalog |
+| 3.3 | Wallet (deposit/withdraw/balance) | Fund management |
+| 3.4 | Order management (place, cancel, history) | Trading flow |
+| 3.5 | Matching engine prototype | Price-time priority matching |
+| 3.6 | WebSocket real-time data | Live orderbook + trade feed |
+| 3.7 | Trading UI (chart, order entry, order book) | Full trading page |
+
+### Phase 4 — Revenue Sharing + Compliance
+
+| Step | Task | Deliverable |
+|------|------|-------------|
+| 4.1 | Distribution calculation + auto-payout | Revenue sharing engine |
+| 4.2 | Audit trail (WORM logging, hash chain) | Immutable transaction log |
+| 4.3 | AML transaction monitoring | Suspicious activity detection |
+| 4.4 | Regulatory reporting (FSC format, Minguo calendar) | Compliance reports |
+| 4.5 | FSC sandbox application | **Regulatory approval process**|
