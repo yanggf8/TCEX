@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# SvelteKit
+/.svelte-kit/
+/build/
+.output/
+
+# Cloudflare
+.wrangler/
+.dev.vars
+.mf/
+functions/[[path]].js
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.test
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+
+# Logs
+*.log

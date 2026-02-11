@@ -1,19 +1,39 @@
+# ============================================
+# TCEX Root .gitignore
+# ============================================
+
 # Dependencies
 node_modules/
 .pnp
 .pnp.js
+package-lock.json
 
-# Next.js
-.next/
-out/
+# ---- SvelteKit / Vite ----
+.svelte-kit/
 build/
 dist/
+.output/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 
-# Environment
-.env
-.env*.local
+# ---- Cloudflare ----
+.wrangler/
+.dev.vars
+wrangler-local/
+.mf/
 
-# Python
+# ---- Go Backend ----
+/api/bin/
+/api/tmp/
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.test
+*.out
+vendor/
+
+# ---- Python (scraper) ----
 __pycache__/
 *.py[cod]
 *$py.class
@@ -21,28 +41,54 @@ __pycache__/
 .Python
 venv/
 env/
+.venv/
 
-# IDE
+# ---- Environment / Secrets ----
+.env
+.env.*
+!.env.example
+!.env.test
+.credentials.json
+*.pem
+*.key
+*.cert
+
+# ---- IDE ----
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# ---- OS ----
 .DS_Store
 Thumbs.db
+Desktop.ini
+ehthumbs.db
 
-# Logs
+# ---- Logs ----
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Testing
+# ---- Testing ----
 coverage/
 .nyc_output/
+playwright-report/
+test-results/
 
-# Misc
-*.pem
+# ---- Database (local dev) ----
+*.sqlite
+*.sqlite3
+*.db
+dump.sql
+
+# ---- Misc ----
 .vercel
+.netlify
+.turbo
+.cache
