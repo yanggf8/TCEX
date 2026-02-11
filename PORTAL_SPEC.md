@@ -1,16 +1,31 @@
-# TCEX Portal — Public Website Specification
+# TCEX Portal — Website Specification
 
 ## Overview
-The public-facing marketing and information portal for Taiwan Capital Exchange. Built with Next.js, this is the **read-only** layer — it does not handle trading, order management, or authenticated user flows (see `AUTH_SPEC.md` and `CORE_ENGINE.md`).
+The SvelteKit application for Taiwan Capital Exchange, deployed on **Cloudflare Pages + Workers**. This is a **single codebase** serving both:
+- **Public pages** (`/`, `/markets`, `/about`, etc.) — unauthenticated, read-only
+- **Authenticated pages** (`/dashboard/*`) — protected by auth hooks, route-level separation
+
+The public pages are specified in this document. The authenticated dashboard pages (portfolio, orders, wallet, etc.) are specified in `AUTH_SPEC.md`. Trading logic, matching, and settlement are handled by the backend services specified in `CORE_ENGINE.md`.
+
+### Deployment Boundary
+Both public and authenticated pages ship as one SvelteKit app on Cloudflare Pages. Auth is enforced via SvelteKit `hooks.server.ts` — the `handle` hook checks JWT validity on `/dashboard/*` routes and redirects unauthenticated users to login. The backend API (Go) is a separate deployment on GCP.
+
+### Tech Stack (Portal)
+- **Framework**: SvelteKit (with `@sveltejs/adapter-cloudflare`)
+- **Styling**: Tailwind CSS
+- **UI Components**: Skeleton UI or Melt UI (headless)
+- **Deployment**: Cloudflare Pages + Workers
+- **i18n**: `sveltekit-i18n` or `paraglide-js`
+- **Charts**: lightweight-charts (TradingView open-source)
 
 ## Rendering Strategy
 
 | Page Type | Strategy | Examples |
 |-----------|----------|---------|
-| Static content | **SSG** (build-time) | About, Rules, CSR, Careers, Contact |
-| Frequently updated | **ISR** (revalidate 60s) | Blog, Media Center, Market Communications |
-| Real-time data | **SSR + Client hydration** | Homepage stats, Listings overview |
-| User-specific | **CSR** (client-only) | Dashboard, Portfolio (via AUTH_SPEC) |
+| Static content | **Prerendered** (`export const prerender = true`) | About, Rules, CSR, Careers, Contact |
+| Frequently updated | **SSR on Cloudflare Workers** (with `stale-while-revalidate` cache headers) | Blog, Media Center, Market Communications |
+| Real-time data | **SSR + Client hydration** (load function + WebSocket on client) | Homepage stats, Listings overview |
+| Authenticated | **CSR** (client-only, auth-gated via hooks) | Dashboard, Portfolio, Orders, Wallet (see `AUTH_SPEC.md`) |
 
 ## Navigation Structure (Revised)
 
@@ -155,10 +170,11 @@ Reduced from 7 sections to 5 for lower cognitive load.
 ## Internationalization (i18n)
 
 ### Strategy
-- Use `next-intl` or `next-i18next`
-- URL pattern: `/tc/...` (Traditional Chinese), `/en/...` (English)
-- Default locale: `tc` (Traditional Chinese)
-- All static text in JSON translation files
+- Use `sveltekit-i18n` or `paraglide-js` (Inlang)
+- URL pattern: `/zh-TW/...` (Traditional Chinese), `/en/...` (English)
+- Default locale: `zh-TW` (BCP-47 standard for Traditional Chinese, Taiwan)
+- Hreflang mapping: `zh-TW` → `<link rel="alternate" hreflang="zh-TW">`, `en` → `<link rel="alternate" hreflang="en">`
+- All static text in JSON translation files (`zh-TW.json`, `en.json`)
 - Content from CMS delivered in both languages
 
 ### Formatting Rules
@@ -176,10 +192,12 @@ Reduced from 7 sections to 5 for lower cognitive load.
 | Metric | Target | Strategy |
 |--------|--------|----------|
 | LCP | < 2.5s | No video hero, optimized images (WebP/AVIF), font preload |
-| FID | < 100ms | Minimal JS on initial load, code splitting |
+| INP | < 200ms | Minimal JS on initial load, code splitting, avoid long tasks |
 | CLS | < 0.1 | Fixed dimensions for stat cards, font-display: swap |
-| TTI | < 3.5s | SSG for static pages, lazy-load below-fold content |
+| TTFB | < 200ms | Cloudflare Workers edge-side rendering, global PoP |
 | Bundle size | < 200KB gzip | Tree-shaking, dynamic imports for map/charts |
+
+> Note: INP (Interaction to Next Paint) replaced FID as a Core Web Vital in March 2024.
 
 ## SEO Requirements
 - Semantic HTML5 structure
@@ -189,6 +207,56 @@ Reduced from 7 sections to 5 for lower cognitive load.
 - robots.txt
 - Canonical URLs for bilingual pages
 - Hreflang tags for language alternates
+
+## Accessibility (WCAG 2.1 AA)
+
+All pages must comply with WCAG 2.1 Level AA. This is not optional — financial platforms face legal risk for non-compliance.
+
+### Color & Contrast
+- All text must meet 4.5:1 contrast ratio (normal text) or 3:1 (large text, ≥18px bold / ≥24px regular)
+- Interactive elements (links, buttons) must have 3:1 contrast against adjacent colors
+- Color must not be the sole means of conveying information (e.g., red/green for gain/loss must also use icons or text labels)
+
+### Keyboard Navigation
+- All interactive elements must be reachable and operable via keyboard (Tab, Enter, Escape, Arrow keys)
+- Visible focus indicator on all focusable elements (minimum 2px outline, 3:1 contrast)
+- Logical tab order matching visual layout
+- Skip-to-content link as first focusable element
+- Dropdown menus: Arrow keys to navigate, Escape to close, Enter to select
+- Modal dialogs: focus trap while open, return focus to trigger on close
+- DataTable: keyboard-navigable rows with sort controls
+
+### ARIA Patterns
+- Navigation: `role="navigation"` with `aria-label` per nav region
+- Statistics cards: `aria-live="polite"` for real-time data updates (not `assertive` — avoid interrupting screen readers)
+- Accordion: `aria-expanded`, `aria-controls` on triggers
+- Mobile drawer: `role="dialog"`, `aria-modal="true"`, focus trap
+- Loading states: `aria-busy="true"` on containers, `role="status"` for skeleton screens
+- Data tables: proper `<th scope>` and `<caption>` elements
+- Language toggle: `aria-current` on active language
+
+### Motion & Animation
+- All animations must respect `prefers-reduced-motion: reduce`:
+  - Hero parallax/gradient shift → static image
+  - Stat card pulse animation → instant update with no animation
+  - Map interactions → static view with click-to-expand
+  - Page transitions → instant swap
+- No auto-playing animations that cannot be paused
+- No content that flashes more than 3 times per second
+
+### Screen Reader
+- Semantic HTML5 elements (`<header>`, `<nav>`, `<main>`, `<footer>`, `<article>`, `<section>`)
+- All images have descriptive `alt` text (or `alt=""` for decorative)
+- Form inputs have associated `<label>` elements
+- Error messages linked to inputs via `aria-describedby`
+- Page titles update on route change (`<title>` reflects current page)
+- Real-time data: use `aria-live` regions, not DOM replacement, for stat updates
+
+### Testing Requirements
+- Automated: axe-core in CI pipeline (zero violations for AA)
+- Manual: keyboard-only navigation test for all user flows
+- Screen reader: test with VoiceOver (macOS/iOS) and NVDA (Windows)
+- Audit: annual third-party WCAG audit
 
 ## Error & Loading States
 

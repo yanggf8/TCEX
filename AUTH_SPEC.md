@@ -3,6 +3,9 @@
 ## Overview
 Authentication, identity verification, and authenticated user flows for Taiwan Capital Exchange. Covers registration, KYC/AML, session management, and the user dashboard.
 
+### Ownership Boundary
+The authenticated dashboard pages (`/dashboard/*`) are part of the same SvelteKit codebase as the public portal (see `PORTAL_SPEC.md`), deployed on Cloudflare Pages. Auth is enforced via SvelteKit's `hooks.server.ts` handle function. This document owns the **UX specification** for all authenticated routes. The backend APIs that power these pages are specified in `CORE_ENGINE.md`.
+
 ## Authentication Methods
 
 ### Primary: Email + Password

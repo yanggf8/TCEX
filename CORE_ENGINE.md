@@ -10,7 +10,7 @@ The backend trading infrastructure for Taiwan Capital Exchange. This system hand
 │                        TCEX Architecture                         │
 ├──────────────┬──────────────┬──────────────┬────────────────────┤
 │  Portal      │  Trading     │  Core        │  Data              │
-│  (Next.js)   │  Gateway     │  Engine      │  Pipeline          │
+│  (SvelteKit) │  Gateway     │  Engine      │  Pipeline          │
 │              │  (API GW)    │  (Rust/Go)   │                    │
 ├──────────────┼──────────────┼──────────────┼────────────────────┤
 │ Public site  │ REST API     │ Matching     │ PostgreSQL         │
@@ -337,8 +337,8 @@ audit_log (id, user_id, action, entity_type, entity_id, details_jsonb, ip_addres
               │            │            │
         ┌─────┴─────┐ ┌───┴────┐ ┌────┴─────┐
         │  Portal    │ │  API   │ │  WS      │
-        │  (Next.js) │ │  GW    │ │  Server  │
-        │  Vercel    │ │  (Go)  │ │  (Go)    │
+        │ (SvelteKit)│ │  GW    │ │  Server  │
+        │ CF Pages   │ │  (Go)  │ │  (Go)    │
         └────────────┘ └───┬────┘ └────┬─────┘
                            │           │
                     ┌──────┴───────────┴──────┐
@@ -355,11 +355,22 @@ audit_log (id, user_id, action, entity_type, entity_id, details_jsonb, ip_addres
                     └────────┘ └────┘ └────────┘
 ```
 
-### Hosting (Taiwan Data Residency)
-- Primary: AWS `ap-northeast-1` (Tokyo) or GCP `asia-east1` (Taiwan)
-- Database: Taiwan-region managed PostgreSQL
-- DR: Cross-region replication to secondary region
-- Backup: Daily snapshots, 90-day retention, encrypted at rest
+### Hosting (Taiwan Data Residency — Compliance Gate)
+
+> **COMPLIANCE REQUIREMENT** (see `COMPLIANCE.md`): All primary financial data
+> (orders, trades, wallets, KYC, audit logs) **must** be hosted in Taiwan or
+> FSC-approved jurisdictions. This is non-negotiable for regulatory approval.
+
+| Tier | Hosting | What goes here |
+|------|---------|----------------|
+| **Financial data** (mandatory Taiwan) | GCP `asia-east1` (Changhua, Taiwan) | PostgreSQL, TimescaleDB, Redis, S3 (KYC docs), audit logs |
+| **Compute** (mandatory Taiwan) | GCP `asia-east1` | Matching engine, API gateway, WebSocket server |
+| **Portal / CDN** (global edge OK) | Cloudflare Pages + Workers | Public website, static assets, edge caching |
+| **DR / backup** | GCP `asia-east2` (Hong Kong) or secondary Taiwan DC | Cross-region replication, encrypted snapshots |
+
+- Database: GCP Cloud SQL for PostgreSQL (Taiwan region), encrypted at rest
+- Backup: Daily snapshots, 90-day retention, encrypted, same jurisdiction
+- **AWS Tokyo is NOT approved** for primary financial data unless explicitly cleared by FSC
 
 ### Monitoring & Observability
 - **Metrics**: Prometheus + Grafana (latency, throughput, error rates)

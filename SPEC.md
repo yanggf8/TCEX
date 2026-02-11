@@ -1,4 +1,13 @@
-# Taiwan Capital Exchange (TCEX) - Technical Specification
+# Taiwan Capital Exchange (TCEX) - Original Reference Specification
+
+> **STATUS: ARCHIVED — This document is a historical reference only.**
+> It captures the initial MCEX analysis and has been superseded by:
+> - `PORTAL_SPEC.md` — Public website (active UX spec)
+> - `CORE_ENGINE.md` — Trading backend
+> - `AUTH_SPEC.md` — Authentication & user flows
+> - `COMPLIANCE.md` — Regulatory compliance
+>
+> Where this document conflicts with the above, the above take precedence.
 
 ## Project Overview
 A Taiwan-based financial asset exchange platform focused on revenue-sharing models for SMEs, inspired by MCEX but with redesigned UX.

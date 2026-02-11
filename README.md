@@ -5,11 +5,12 @@ A Taiwan-based financial asset exchange platform for SME revenue-sharing, regula
 ## Architecture
 
 ```
-Portal (Next.js)  ←→  API Gateway (Go)  ←→  Core Engine (Rust/Go)
-     │                      │                       │
-     │                 WebSocket                     │
-     │                      │                       │
-     └── CDN (CloudFlare) ──┴── PostgreSQL / Redis / TimescaleDB
+Portal (SvelteKit)  ←→  API Gateway (Go)  ←→  Core Engine (Rust/Go)
+     │                        │                       │
+     │                   WebSocket                    │
+     │                        │                       │
+     └── Cloudflare Pages ────┴── PostgreSQL / Redis / TimescaleDB
+              (edge)                   (GCP Taiwan)
 ```
 
 ## Project Structure
@@ -30,16 +31,16 @@ TCEX/
 
 | Spec | Covers |
 |------|--------|
-| [PORTAL_SPEC.md](PORTAL_SPEC.md) | Next.js portal, redesigned navigation (5 sections), homepage (trust-first), component library, i18n, SEO, performance targets |
+| [PORTAL_SPEC.md](PORTAL_SPEC.md) | SvelteKit portal on Cloudflare, redesigned navigation (5 sections), homepage (trust-first), component library, i18n, SEO, performance targets |
 | [CORE_ENGINE.md](CORE_ENGINE.md) | Matching engine, order management, clearing/settlement, REST + WebSocket APIs, database schema, infrastructure |
 | [AUTH_SPEC.md](AUTH_SPEC.md) | Registration, KYC levels (0-3), LINE Login, 2FA, user dashboard (portfolio, orders, wallet, distributions) |
 | [COMPLIANCE.md](COMPLIANCE.md) | FSC regulatory framework, data residency, WORM audit logging, AML/CFT, PDPA privacy, incident response |
 
 ## Key Design Decisions
 
-1. **Separated architecture**: Portal (Next.js) is decoupled from Trading Core (Rust/Go)
+1. **Separated architecture**: Portal (SvelteKit/Cloudflare) is decoupled from Trading Core (Rust/Go)
 2. **Trust-first homepage**: FSC badges + market data upfront, no video hero
-3. **WCAG AA compliant**: All text colors pass 4.5:1 contrast ratio
+3. **WCAG 2.1 AA compliant**: Color contrast, keyboard navigation, ARIA patterns, prefers-reduced-motion
 4. **Taiwan-native**: LINE Login, Minguo calendar, TWD formatting, National ID KYC
 5. **Real-time via WebSocket**: `wss://api.tcex.tw/ws/v1` for market data + order updates
 6. **Immutable audit trail**: Cryptographic hash chain, WORM logging, 10-year retention
@@ -57,18 +58,18 @@ TCEX/
 
 ## Tech Stack
 
-- **Portal**: Next.js, Tailwind CSS, Noto Sans TC
+- **Portal**: SvelteKit, Tailwind CSS, Skeleton UI, Noto Sans TC
 - **API Gateway**: Go (gin/fiber)
 - **Matching Engine**: Rust or Go
 - **Database**: PostgreSQL 16 (RLS), TimescaleDB, Redis 7
 - **Message Queue**: NATS or Kafka
 - **Search**: Meilisearch
-- **Hosting**: GCP asia-east1 (Taiwan) or AWS ap-northeast-1
-- **CDN/WAF**: CloudFlare
+- **Hosting**: GCP asia-east1 (Taiwan) — mandatory for financial data
+- **Portal/CDN**: Cloudflare Pages + Workers (global edge)
 
 ## Next Steps
 
-1. Initialize Next.js project with Tailwind + i18n
+1. Initialize SvelteKit project with Tailwind + Cloudflare adapter + i18n
 2. Build component library (StatCard, Header, Navigation, etc.)
 3. Implement portal pages (homepage, markets, about)
 4. Set up Go API gateway with auth middleware
