@@ -187,20 +187,33 @@ GET /api/blog/latest
 
 ## Design System
 
-### Colors (from CSS classes)
-- Primary: #00D29E (green accent)
+### Colors (WCAG AA Compliant)
+- Primary: #00B386 (green accent — darkened from #00D29E for AA contrast on white)
+- Primary Hover: #009E75
 - Background: #F7F8FA (light gray)
-- Text: #6D758F (gray)
-- Dark: Various shades
+- Surface: #FFFFFF (cards, modals)
+- Text Primary: #2D3142 (dark — 12.5:1 on #F7F8FA, passes AAA)
+- Text Secondary: #545B72 (gray — 5.2:1 on #F7F8FA, passes AA)
+- Text Muted: #6B7280 (light gray — 4.6:1 on #FFFFFF, passes AA)
+- Border: #D1D5DB
+- Success: #059669
+- Warning: #D97706
+- Error: #DC2626
+- Info: #2563EB
 
 ### Typography
-- Responsive font sizes
-- Chinese font optimization required
+- Primary: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif
+- Headings: 700 weight, tracking -0.02em
+- Body: 400 weight, line-height 1.75 (optimized for Chinese readability)
+- Font sizes (rem): xs=0.75, sm=0.875, base=1, lg=1.125, xl=1.25, 2xl=1.5, 3xl=1.875, 4xl=2.25
+- Numbers/Currency: "Noto Sans TC" tabular-nums (monospace figures for alignment)
 
 ### Spacing
-- Consistent padding/margin system
-- Mobile: 30px sections
-- Desktop: 80px sections
+- Base unit: 4px
+- Scale: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96, 128
+- Section padding mobile: 32px vertical
+- Section padding desktop: 80px vertical
+- Container max-width: 1280px with 16px (mobile) / 32px (desktop) horizontal padding
 
 ## Security & Compliance
 - reCAPTCHA integration
