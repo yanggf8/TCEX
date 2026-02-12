@@ -61,7 +61,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ listingId, side, price, quantity })
 			});
-			const result = await res.json();
+			const result: any = await res.json();
 
 			if (!res.ok) {
 				error = result.error?.message || $t('common.error');

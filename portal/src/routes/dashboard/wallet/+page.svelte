@@ -40,7 +40,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ amount: depositAmount })
 			});
-			const result = await res.json();
+			const result: any = await res.json();
 
 			if (!res.ok) {
 				depositError = result.error?.message || $t('common.error');
@@ -68,7 +68,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ amount: withdrawAmount })
 			});
-			const result = await res.json();
+			const result: any = await res.json();
 
 			if (!res.ok) {
 				withdrawError = result.error?.message || $t('common.error');

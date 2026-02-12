@@ -30,7 +30,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ displayName, phone })
 			});
-			const result = await res.json();
+			const result: any = await res.json();
 
 			if (!res.ok) {
 				profileError = result.error?.message || $t('common.error');
@@ -67,7 +67,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ currentPassword, newPassword })
 			});
-			const result = await res.json();
+			const result: any = await res.json();
 
 			if (!res.ok) {
 				passwordError = result.error?.message || $t('common.error');

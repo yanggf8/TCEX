@@ -33,7 +33,7 @@
 				})
 			});
 
-			const data = await res.json();
+			const data: any = await res.json();
 
 			if (!res.ok) {
 				error = data.error?.message || '註冊失敗';

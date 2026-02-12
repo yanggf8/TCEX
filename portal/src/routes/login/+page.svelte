@@ -20,7 +20,7 @@
 				body: JSON.stringify({ email, password })
 			});
 
-			const data = await res.json();
+			const data: any = await res.json();
 
 			if (!res.ok) {
 				error = data.error?.message || '登入失敗';
