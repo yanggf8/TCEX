@@ -5,17 +5,24 @@ A Taiwan-based financial asset exchange platform for SME revenue-sharing, regula
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                    Cloudflare Platform                     │
-├──────────────┬──────────────┬──────────────┬──────────────┤
-│  Portal      │  API Routes  │  Workers     │  Storage     │
-│  (SvelteKit) │  (+server.ts)│  (WebSocket) │              │
-├──────────────┼──────────────┼──────────────┼──────────────┤
-│ Public site  │ REST API     │ Real-time    │ D1 (SQLite)  │
-│ SSG/SSR      │ Auth/Rate    │ Orderbook    │ KV (sessions)│
-│ i18n         │ limiting     │ Trade feed   │ R2 (KYC docs)│
-│ SEO          │ JWT hooks    │ Durable Obj  │ Queues       │
-└──────────────┴──────────────┴──────────────┴──────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                       Cloudflare Platform                            │
+│                                                                     │
+│  ┌─────────────────────┐     Service      ┌──────────────────────┐  │
+│  │  Portal (Pages)     │     Binding       │  Engine (Worker)     │  │
+│  │  SvelteKit SSR      │ ───────────────▶  │                      │  │
+│  │                     │                   │  Matching Engine DO  │  │
+│  │  • Public site      │                   │  (one per listing)   │  │
+│  │  • Dashboard UI     │  ◀── WebSocket ── │                      │  │
+│  │  • REST API routes  │                   │  • Order matching    │  │
+│  │  • Auth (JWT + KV)  │                   │  • Orderbook state   │  │
+│  │  • i18n (zh-TW/en)  │                   │  • WS broadcast      │  │
+│  └─────────────────────┘                   └──────────────────────┘  │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  Storage: D1 (SQLite) · KV (sessions) · R2 (KYC) · Queues   │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Project Structure
@@ -28,6 +35,21 @@ TCEX/
 ├── COMPLIANCE.md          # Regulatory — Taiwan FSC, data residency, audit trails, AML/CFT
 ├── SPEC.md                # Original reference spec (from MCEX analysis, archived)
 ├── portal/                # SvelteKit app (Cloudflare Pages + Workers)
+│   └── src/
+│       ├── lib/components/ # OrderBook, OrderForm, TradeHistory, PriceChart, Header, Footer...
+│       ├── lib/server/     # db.ts, wallet.ts, order-validation.ts
+│       ├── lib/stores/     # websocket.ts, orderbook.ts, trades.ts
+│       ├── lib/utils/      # decimal.ts (BigInt-based financial arithmetic)
+│       ├── lib/types/      # wallet.ts, order.ts, portfolio.ts, trading.ts
+│       └── routes/         # Public pages + /dashboard/* + /api/v1/*
+├── engine/                # Matching engine Worker (Cloudflare Workers + Durable Objects)
+│   └── src/
+│       ├── index.ts        # Worker entry, routes to DO stubs
+│       ├── matching-engine.ts  # MatchingEngine DO (order matching + WebSocket broadcast)
+│       ├── orderbook.ts    # In-memory orderbook (price-time priority, FIFO)
+│       ├── types.ts        # Order, Trade, PriceLevel types
+│       └── decimal.ts      # Decimal arithmetic (shared with portal)
+├── migrations/            # D1 SQL migrations (users, trading tables, distributions)
 ├── scraper.py             # Web scraper for MCEX reference data
 ├── mcex_scraped_data.json # Scraped structure and content
 └── README.md              # This file
@@ -65,14 +87,16 @@ TCEX/
 
 ## Tech Stack
 
-- **Framework**: SvelteKit + Tailwind CSS + Noto Sans TC
-- **Hosting**: Cloudflare Pages + Workers
+- **Framework**: SvelteKit 5 + Tailwind CSS v4 + Noto Sans TC + IBM Plex Mono
+- **Portal Hosting**: Cloudflare Pages (SSR)
+- **Engine Hosting**: Cloudflare Workers (Durable Objects for matching engine)
 - **Database**: Cloudflare D1 (SQLite at edge)
-- **Sessions/Cache**: Cloudflare KV
+- **Sessions/Cache**: Cloudflare KV (JWT session store)
 - **File Storage**: Cloudflare R2 (KYC documents)
-- **Real-time**: Cloudflare Durable Objects (WebSocket)
+- **Real-time**: Durable Objects WebSocket Hibernation API (one DO per listing)
+- **Charts**: lightweight-charts (TradingView)
+- **Financial Math**: Custom BigInt-based TEXT decimal arithmetic (no floating-point)
 - **Queues**: Cloudflare Queues (async events, audit trail)
-- **Search**: D1 FTS5 (full-text search) or Meilisearch (if needed)
 - **Data Residency**: D1 location hint `asia` + R2 in APAC. If FSC requires Taiwan-only hosting, migrate to Hyperdrive + external PostgreSQL in GCP `asia-east1`
 
 ## Roadmap (Solo Developer + CEO)
@@ -100,17 +124,17 @@ TCEX/
 | 2.6 | KYC flow (L0→L1→L2: email → phone → ID) | Identity verification pipeline |
 | 2.7 | User dashboard shell (layout, sidebar) | Authenticated area scaffold |
 
-### Phase 3 — Trading Core (Cloudflare-native)
+### Phase 3 — Trading Core (DONE)
 
 | Step | Task | Deliverable |
 |------|------|-------------|
-| 3.1 | D1 schema: products, listings, orders, trades, wallets | Full database schema |
-| 3.2 | Listings API (CRUD, search, detail) | Product catalog |
-| 3.3 | Wallet (deposit/withdraw/balance) | Fund management |
-| 3.4 | Order management (place, cancel, history) | Trading flow |
-| 3.5 | Matching engine (Durable Object) | Price-time priority matching |
-| 3.6 | WebSocket real-time data (Durable Object) | Live orderbook + trade feed |
-| 3.7 | Trading UI (chart, order entry, order book) | Full trading page |
+| 3.1 | D1 schema: products, listings, orders, trades, wallets, positions, watchlist | Full database schema (8 trading tables, 15 seeded listings) |
+| 3.2 | Listings API + Dashboard shell with sidebar | Product catalog, read-only APIs, dashboard overview |
+| 3.3 | Wallet system (deposit/withdraw/balance/transactions) | Fund management with BigInt decimal arithmetic |
+| 3.4 | Watchlist, Portfolio, Orders, Distributions, Settings pages | All dashboard pages functional |
+| 3.5 | Matching engine (separate Worker + Durable Object per listing) | Price-time priority matching, partial fills, pre-trade risk checks |
+| 3.6 | WebSocket via DO Hibernation API | Live orderbook + trade feed, auto-reconnect client |
+| 3.7 | Trading UI (OrderBook, OrderForm, PriceChart, TradeHistory) | Full trading page with precision terminal aesthetic |
 
 ### Phase 4 — Revenue Sharing + Compliance
 

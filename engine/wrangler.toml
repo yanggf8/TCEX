@@ -1,0 +1,18 @@
+name = "tcex-engine"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tcex-db"
+database_id = "8384dcf4-24d2-4baf-a33c-a617beed6b64"
+
+[durable_objects]
+bindings = [
+  { name = "MATCHING_ENGINE", class_name = "MatchingEngine" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["MatchingEngine"]

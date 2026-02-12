@@ -19,6 +19,7 @@ declare global {
 			env: {
 				DB: D1Database;
 				SESSIONS: KVNamespace;
+				ENGINE?: Fetcher;
 			};
 			context: ExecutionContext;
 		}

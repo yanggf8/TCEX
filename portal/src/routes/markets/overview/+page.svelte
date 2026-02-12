@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
+
+	let { data } = $props();
 </script>
 
 <svelte:head>
@@ -23,7 +25,7 @@
 			</div>
 			<div class="bg-white rounded-xl p-6 border border-gray-200">
 				<p class="text-sm text-gray-500 mb-1">{$t('market.totalListings')}</p>
-				<p class="text-2xl font-bold text-gray-900">{$t('market.placeholder')}</p>
+				<p class="text-2xl font-bold text-gray-900">{data.stats.totalListings}</p>
 			</div>
 			<div class="bg-white rounded-xl p-6 border border-gray-200">
 				<p class="text-sm text-gray-500 mb-1">{$t('market.totalInvestors')}</p>
@@ -35,6 +37,27 @@
 			</div>
 		</div>
 	</section>
+
+	<!-- Listing Breakdown by Type -->
+	{#if data.stats.totalListings > 0}
+		<section class="mb-12">
+			<h2 class="text-xl font-semibold text-gray-900 mb-6">{$t('market.listingBreakdown')}</h2>
+			<div class="grid grid-cols-3 gap-4">
+				<div class="bg-white rounded-xl p-6 border border-gray-200 text-center">
+					<p class="text-sm text-gray-500 mb-1">RBO</p>
+					<p class="text-2xl font-bold text-primary-600">{data.stats.rboCount}</p>
+				</div>
+				<div class="bg-white rounded-xl p-6 border border-gray-200 text-center">
+					<p class="text-sm text-gray-500 mb-1">SPV</p>
+					<p class="text-2xl font-bold text-primary-600">{data.stats.spvCount}</p>
+				</div>
+				<div class="bg-white rounded-xl p-6 border border-gray-200 text-center">
+					<p class="text-sm text-gray-500 mb-1">SPAC</p>
+					<p class="text-2xl font-bold text-primary-600">{data.stats.spacCount}</p>
+				</div>
+			</div>
+		</section>
+	{/if}
 
 	<!-- Trading Hours -->
 	<section class="mb-12">

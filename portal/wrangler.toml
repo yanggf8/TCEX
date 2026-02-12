@@ -11,3 +11,7 @@ database_id = "8384dcf4-24d2-4baf-a33c-a617beed6b64"
 [[kv_namespaces]]
 binding = "SESSIONS"
 id = "2ff4e3eb499549fea9291ec36f320cc3"
+
+[[services]]
+binding = "ENGINE"
+service = "tcex-engine"

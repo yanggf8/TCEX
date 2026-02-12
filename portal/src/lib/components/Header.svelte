@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { t, locale, toggleLocale } from '$lib/i18n';
 
+	interface Props {
+		user: { id: string; email: string; displayName: string | null; kycLevel: number } | null;
+	}
+
+	let { user = null }: Props = $props();
 	let mobileMenuOpen = $state(false);
 
 	const navKeys = [
@@ -46,18 +51,27 @@
 					{$t('nav.langToggle')}
 				</button>
 
-				<a
-					href="/login"
-					class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
-				>
-					{$t('nav.login')}
-				</a>
-				<a
-					href="/register"
-					class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
-				>
-					{$t('nav.register')}
-				</a>
+				{#if user}
+					<a
+						href="/dashboard"
+						class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
+					>
+						{$t('nav.dashboard')}
+					</a>
+				{:else}
+					<a
+						href="/login"
+						class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
+					>
+						{$t('nav.login')}
+					</a>
+					<a
+						href="/register"
+						class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
+					>
+						{$t('nav.register')}
+					</a>
+				{/if}
 			</div>
 
 			<!-- Mobile Menu Button -->
@@ -104,18 +118,27 @@
 				</button>
 				<hr class="my-4 border-gray-200" />
 				<div class="flex gap-3 px-4">
-					<a
-						href="/login"
-						class="flex-1 py-3 text-center text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
-					>
-						{$t('nav.login')}
-					</a>
-					<a
-						href="/register"
-						class="flex-1 py-3 text-center text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
-					>
-						{$t('nav.register')}
-					</a>
+					{#if user}
+						<a
+							href="/dashboard"
+							class="flex-1 py-3 text-center text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+						>
+							{$t('nav.dashboard')}
+						</a>
+					{:else}
+						<a
+							href="/login"
+							class="flex-1 py-3 text-center text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
+						>
+							{$t('nav.login')}
+						</a>
+						<a
+							href="/register"
+							class="flex-1 py-3 text-center text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+						>
+							{$t('nav.register')}
+						</a>
+					{/if}
 				</div>
 			</nav>
 		</div>

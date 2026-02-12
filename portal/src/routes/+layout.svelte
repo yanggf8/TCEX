@@ -4,7 +4,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 
-	let { children } = $props();
+	let { data, children } = $props();
 </script>
 
 <svelte:head>
@@ -12,7 +12,7 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
-	<Header />
+	<Header user={data.user} />
 	<main class="flex-1">
 		{@render children()}
 	</main>
