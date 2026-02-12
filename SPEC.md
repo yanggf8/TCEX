@@ -197,15 +197,17 @@ GET /api/blog/latest
 ## Design System
 
 ### Colors (WCAG AA Compliant)
-- Primary: #00B386 (green accent — darkened from #00D29E for AA contrast on white)
-- Primary Hover: #009E75
+- Primary: #2563EB (trust blue — chosen over green for Taiwan market where green=down)
+- Primary Hover: #1D4ED8
+- Primary Dark: #1E40AF (for text on light backgrounds)
 - Background: #F7F8FA (light gray)
 - Surface: #FFFFFF (cards, modals)
 - Text Primary: #2D3142 (dark — 12.5:1 on #F7F8FA, passes AAA)
 - Text Secondary: #545B72 (gray — 5.2:1 on #F7F8FA, passes AA)
 - Text Muted: #6B7280 (light gray — 4.6:1 on #FFFFFF, passes AA)
 - Border: #D1D5DB
-- Success: #059669
+- Success/Up: #DC2626 (red — Taiwan stock convention: red=up)
+- Down: #059669 (green — Taiwan stock convention: green=down)
 - Warning: #D97706
 - Error: #DC2626
 - Info: #2563EB
