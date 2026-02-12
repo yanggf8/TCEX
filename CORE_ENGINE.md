@@ -1,37 +1,38 @@
 # TCEX Core Engine — Trading Backend Specification
 
 ## Overview
-The backend trading infrastructure for Taiwan Capital Exchange. This system handles order management, matching, clearing/settlement, and real-time data distribution. **Completely separate** from the public portal (Next.js).
+The backend trading infrastructure for Taiwan Capital Exchange. This system handles order management, matching, clearing/settlement, and real-time data distribution. Built on **Cloudflare's serverless platform** as part of the same SvelteKit codebase.
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        TCEX Architecture                         │
-├──────────────┬──────────────┬──────────────┬────────────────────┤
-│  Portal      │  Trading     │  Core        │  Data              │
-│  (SvelteKit) │  Gateway     │  Engine      │  Pipeline          │
-│              │  (API GW)    │  (Rust/Go)   │                    │
-├──────────────┼──────────────┼──────────────┼────────────────────┤
-│ Public site  │ REST API     │ Matching     │ PostgreSQL         │
-│ SSG/SSR      │ WebSocket    │ OMS          │ Redis              │
-│ i18n         │ Auth/Rate    │ Risk Mgmt    │ TimescaleDB        │
-│ SEO          │ limiting     │ Settlement   │ Event Store        │
-└──────────────┴──────────────┴──────────────┴────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    Cloudflare Platform                         │
+├──────────────┬──────────────┬──────────────┬─────────────────┤
+│  Portal      │  API Routes  │  Durable     │  Storage        │
+│  (SvelteKit) │  (+server.ts)│  Objects     │                 │
+├──────────────┼──────────────┼──────────────┼─────────────────┤
+│ Public site  │ REST API     │ Matching     │ D1 (SQLite)     │
+│ SSG/SSR      │ Auth/Rate    │ WebSocket    │ KV (sessions)   │
+│ i18n         │ JWT hooks    │ Orderbook    │ R2 (KYC docs)   │
+│ SEO          │ Validation   │ State mgmt   │ Queues (events) │
+└──────────────┴──────────────┴──────────────┴─────────────────┘
 ```
 
 ## Technology Stack
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
-| Matching Engine | **Rust** or **Go** | Sub-millisecond latency, memory safety |
-| API Gateway | **Go** (gin/fiber) | High concurrency, efficient WebSocket handling |
-| Database (transactional) | **PostgreSQL 16** | ACID compliance, Row-Level Security, JSONB |
-| Database (time-series) | **TimescaleDB** | Price history, OHLCV candles, analytics |
-| Cache / Pub-Sub | **Redis 7** | Real-time stats, session store, event pub/sub |
-| Message Queue | **NATS** or **Kafka** | Event-driven architecture, audit trail |
-| Object Storage | **S3-compatible** | Documents, KYC files, reports |
-| Search | **Meilisearch** | Listing search, document search |
+| API Routes | **SvelteKit `+server.ts`** | Same codebase, TypeScript, runs on Workers |
+| Matching Engine | **Cloudflare Durable Object** | Stateful singleton, in-memory orderbook, WebSocket |
+| Database (transactional) | **Cloudflare D1** (SQLite) | ACID, zero config, edge-local, SQL |
+| Sessions / Cache | **Cloudflare KV** | Global low-latency key-value, JWT storage |
+| Object Storage | **Cloudflare R2** | S3-compatible, KYC documents, reports |
+| Event Queue | **Cloudflare Queues** | Async audit trail, distribution events |
+| Real-time | **Durable Objects WebSocket** | Per-listing orderbook, trade feed |
+| Search | **D1 FTS5** | Built-in SQLite full-text search |
+
+> **Migration path**: If FSC requires Taiwan-only data residency, D1 can be replaced with Hyperdrive + GCP Cloud SQL PostgreSQL (`asia-east1`) without changing API routes. See Phase 5 in README.md.
 
 ## Matching Engine
 
@@ -116,7 +117,7 @@ Trade Executed → Netting → Obligation Calculation → Fund Transfer → Asse
 
 ### Connection
 ```
-wss://api.tcex.tw/ws/v1
+wss://tcex-portal.pages.dev/ws/v1  (or custom domain: wss://tcex.tw/ws/v1)
 ```
 
 ### Authentication
@@ -193,7 +194,7 @@ wss://api.tcex.tw/ws/v1
 
 ### Base URL
 ```
-https://api.tcex.tw/v1
+/api/v1  (same origin — SvelteKit +server.ts routes on Cloudflare Workers)
 ```
 
 ### Public Endpoints (no auth)
@@ -283,101 +284,107 @@ GET    /admin/reports/regulatory      # FSC regulatory report
 - Error format: `{ "error": { "code": "INSUFFICIENT_BALANCE", "message": "..." } }`
 - API versioning via URL prefix (`/v1/`)
 
-## Database Schema (PostgreSQL)
+## Database Schema (Cloudflare D1 — SQLite)
+
+> D1 uses SQLite. Financial values stored as TEXT (decimal strings, never float).
+> If migrating to PostgreSQL via Hyperdrive (Phase 5), schema is compatible — only add RLS policies.
 
 ### Core Tables
 ```sql
 -- Users
-users (id, email, phone, display_name, kyc_level, status, created_at, updated_at)
+users (id TEXT PRIMARY KEY, email TEXT UNIQUE, phone TEXT, display_name TEXT, password_hash TEXT, kyc_level INTEGER DEFAULT 0, status TEXT DEFAULT 'active', created_at TEXT, updated_at TEXT)
 
 -- KYC
-kyc_applications (id, user_id, national_id_hash, document_type, status, reviewer_id, reviewed_at)
+kyc_applications (id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id), national_id_hash TEXT, document_type TEXT, document_r2_key TEXT, status TEXT DEFAULT 'pending', reviewer_id TEXT, reviewed_at TEXT, created_at TEXT)
 
 -- Products & Listings
-products (id, type, name_tc, name_en, description_tc, description_en, status)
-listings (id, product_id, symbol, name_tc, name_en, total_units, available_units, unit_price, status, listed_at)
+products (id TEXT PRIMARY KEY, type TEXT, name_tc TEXT, name_en TEXT, description_tc TEXT, description_en TEXT, status TEXT DEFAULT 'active')
+listings (id TEXT PRIMARY KEY, product_id TEXT REFERENCES products(id), symbol TEXT UNIQUE, name_tc TEXT, name_en TEXT, total_units TEXT, available_units TEXT, unit_price TEXT, status TEXT DEFAULT 'active', listed_at TEXT)
 
 -- Orders & Trades
-orders (id, user_id, listing_id, side, type, quantity, price, stop_price, tif, status, filled_qty, avg_fill_price, created_at)
-trades (id, listing_id, buy_order_id, sell_order_id, price, quantity, traded_at)
+orders (id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id), listing_id TEXT REFERENCES listings(id), side TEXT, type TEXT, quantity TEXT, price TEXT, stop_price TEXT, tif TEXT DEFAULT 'GTC', status TEXT DEFAULT 'pending', filled_qty TEXT DEFAULT '0', avg_fill_price TEXT, created_at TEXT)
+trades (id TEXT PRIMARY KEY, listing_id TEXT REFERENCES listings(id), buy_order_id TEXT, sell_order_id TEXT, price TEXT, quantity TEXT, traded_at TEXT)
 
 -- Wallet & Positions
-wallets (id, user_id, currency, available_balance, locked_balance)
-positions (id, user_id, listing_id, quantity, avg_cost, unrealized_pnl)
-wallet_transactions (id, wallet_id, type, amount, reference_id, created_at)
+wallets (id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id), currency TEXT DEFAULT 'TWD', available_balance TEXT DEFAULT '0', locked_balance TEXT DEFAULT '0')
+positions (id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id), listing_id TEXT REFERENCES listings(id), quantity TEXT, avg_cost TEXT)
+wallet_transactions (id TEXT PRIMARY KEY, wallet_id TEXT REFERENCES wallets(id), type TEXT, amount TEXT, reference_id TEXT, created_at TEXT)
 
 -- Revenue Sharing
-distributions (id, listing_id, total_amount, per_unit_amount, record_date, payment_date, status)
-distribution_payments (id, distribution_id, user_id, units_held, amount, status, paid_at)
+distributions (id TEXT PRIMARY KEY, listing_id TEXT REFERENCES listings(id), total_amount TEXT, per_unit_amount TEXT, record_date TEXT, payment_date TEXT, status TEXT DEFAULT 'pending')
+distribution_payments (id TEXT PRIMARY KEY, distribution_id TEXT REFERENCES distributions(id), user_id TEXT REFERENCES users(id), units_held TEXT, amount TEXT, status TEXT DEFAULT 'pending', paid_at TEXT)
 
--- Audit
-audit_log (id, user_id, action, entity_type, entity_id, details_jsonb, ip_address, created_at)
+-- Audit (append-only — application enforces no UPDATE/DELETE)
+audit_log (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, entity_type TEXT, entity_id TEXT, details TEXT, ip_address TEXT, prev_hash TEXT, created_at TEXT)
 ```
 
 ### Indexes
-- `orders`: composite on (user_id, status, created_at), (listing_id, side, price) for order book
-- `trades`: composite on (listing_id, traded_at) for trade feed
-- `audit_log`: composite on (entity_type, entity_id, created_at) — append-only, no deletes
+```sql
+CREATE INDEX idx_orders_user_status ON orders(user_id, status, created_at);
+CREATE INDEX idx_orders_listing_side ON orders(listing_id, side, price);
+CREATE INDEX idx_trades_listing ON trades(listing_id, traded_at);
+CREATE INDEX idx_audit_entity ON audit_log(entity_type, entity_id, created_at);
+CREATE INDEX idx_users_email ON users(email);
+```
 
-### Row-Level Security
-- Users can only access their own orders, positions, wallet
-- Admin roles bypass RLS for management endpoints
-- Audit log is append-only (no UPDATE/DELETE permissions)
+### Access Control
+- Application-level enforcement: API routes filter by authenticated `user_id`
+- Audit log: application code only issues INSERT (no UPDATE/DELETE handlers)
+- Admin routes: role check in middleware before accessing any management endpoint
+- If migrated to PostgreSQL (Phase 5): add Row-Level Security policies
 
 ## Infrastructure
 
-### Deployment Architecture
+### Deployment Architecture (Cloudflare-native)
 ```
-                    ┌─────────────┐
-                    │  CloudFlare  │
-                    │  CDN + WAF   │
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              │            │            │
-        ┌─────┴─────┐ ┌───┴────┐ ┌────┴─────┐
-        │  Portal    │ │  API   │ │  WS      │
-        │ (SvelteKit)│ │  GW    │ │  Server  │
-        │ CF Pages   │ │  (Go)  │ │  (Go)    │
-        └────────────┘ └───┬────┘ └────┬─────┘
-                           │           │
-                    ┌──────┴───────────┴──────┐
-                    │     Internal Network      │
-                    ├────────┬────────┬─────────┤
-                    │ Match  │ Redis  │ NATS/   │
-                    │ Engine │        │ Kafka   │
-                    │ (Rust) │        │         │
-                    └────┬───┴───┬────┴────┬────┘
-                         │       │         │
-                    ┌────┴───┐ ┌─┴──┐ ┌───┴────┐
-                    │ Postgres│ │TS  │ │ S3     │
-                    │        │ │ DB │ │        │
-                    └────────┘ └────┘ └────────┘
+┌───────────────────────────────────────────────────────────┐
+│                   Cloudflare Platform                       │
+├───────────────────────────────────────────────────────────┤
+│                                                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │  Pages       │  │  Workers     │  │  Durable     │    │
+│  │  (SvelteKit) │  │  (API routes)│  │  Objects     │    │
+│  │  SSR + SSG   │  │  +server.ts  │  │  Matching    │    │
+│  └──────┬───────┘  └──────┬───────┘  │  WebSocket   │    │
+│         │                 │          └──────┬───────┘    │
+│         │                 │                 │            │
+│  ┌──────┴─────────────────┴─────────────────┴───────┐    │
+│  │              Cloudflare Bindings                    │    │
+│  ├────────┬────────┬────────┬──────────┤              │    │
+│  │ D1     │ KV     │ R2     │ Queues   │              │    │
+│  │ (SQL)  │ (cache)│ (files)│ (events) │              │    │
+│  └────────┴────────┴────────┴──────────┘              │    │
+└───────────────────────────────────────────────────────┘
 ```
 
-### Hosting (Taiwan Data Residency — Compliance Gate)
+### Hosting Strategy
 
-> **COMPLIANCE REQUIREMENT** (see `COMPLIANCE.md`): All primary financial data
-> (orders, trades, wallets, KYC, audit logs) **must** be hosted in Taiwan or
-> FSC-approved jurisdictions. This is non-negotiable for regulatory approval.
+**MVP (Phase 2-4): Cloudflare-only**
 
-| Tier | Hosting | What goes here |
-|------|---------|----------------|
-| **Financial data** (mandatory Taiwan) | GCP `asia-east1` (Changhua, Taiwan) | PostgreSQL, TimescaleDB, Redis, S3 (KYC docs), audit logs |
-| **Compute** (mandatory Taiwan) | GCP `asia-east1` | Matching engine, API gateway, WebSocket server |
-| **Portal / CDN** (global edge OK) | Cloudflare Pages + Workers | Public website, static assets, edge caching |
-| **DR / backup** | GCP `asia-east2` (Hong Kong) or secondary Taiwan DC | Cross-region replication, encrypted snapshots |
+| Service | Cloudflare Product | What goes here |
+|---------|-------------------|----------------|
+| Database | D1 (location hint: `asia`) | Users, orders, trades, wallets, audit logs |
+| Sessions | KV | JWT tokens, rate limiting counters |
+| Files | R2 | KYC documents, reports |
+| Matching | Durable Objects | In-memory orderbook, WebSocket connections |
+| Events | Queues | Audit trail, distribution events |
+| Portal | Pages + Workers | Public site, API routes, SSR |
 
-- Database: GCP Cloud SQL for PostgreSQL (Taiwan region), encrypted at rest
-- Backup: Daily snapshots, 90-day retention, encrypted, same jurisdiction
-- **AWS Tokyo is NOT approved** for primary financial data unless explicitly cleared by FSC
+**Production (Phase 5 — if FSC requires Taiwan-only hosting):**
+
+| Service | Migration Target | Rationale |
+|---------|-----------------|-----------|
+| Database | Hyperdrive → GCP Cloud SQL PostgreSQL (`asia-east1`) | Data residency compliance |
+| Files | R2 → GCP Cloud Storage (`asia-east1`) | KYC doc residency |
+| Cache | KV → Upstash Redis (APAC) | Session management at scale |
+
+> **Note**: API routes (`+server.ts`) remain on Cloudflare Workers — only the data layer migrates. No code changes needed thanks to Hyperdrive's PostgreSQL wire protocol compatibility.
 
 ### Monitoring & Observability
-- **Metrics**: Prometheus + Grafana (latency, throughput, error rates)
-- **Logging**: Structured JSON logs → ELK stack or Loki
-- **Tracing**: OpenTelemetry distributed tracing
-- **Alerting**: PagerDuty for P1 (matching engine down, settlement failure)
-- **Uptime**: 99.95% SLA during trading hours
+- **Metrics**: Cloudflare Analytics + Workers Analytics Engine
+- **Logging**: Workers `console.log` → Cloudflare Logpush (or Tail Workers)
+- **Alerting**: Cloudflare Notifications for error rate spikes
+- **Uptime**: Cloudflare's 99.99% SLA for Workers
 
 ### Circuit Breakers
 - Per-listing price band: ±10% from reference price

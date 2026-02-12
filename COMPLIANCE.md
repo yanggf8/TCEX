@@ -30,19 +30,20 @@ Regulatory compliance requirements for operating a financial asset exchange in T
 
 ### Requirements
 - **Primary financial data** (orders, trades, wallets, KYC): must be stored within Taiwan or FSC-approved jurisdictions
-- **Recommended hosting**: GCP `asia-east1` (Changhua, Taiwan) or local Taiwan data centers
+- **Pre-approval (MVP)**: Cloudflare D1 (location hint: `asia`) + R2 (APAC) — sufficient for sandbox/pre-launch
+- **Post-approval (production)**: Migrate to Hyperdrive + GCP Cloud SQL PostgreSQL (`asia-east1`, Changhua, Taiwan) if FSC requires explicit Taiwan data residency
 - **Backup**: encrypted backups within the same jurisdiction
 - **Cross-border transfer**: requires explicit user consent and FSC notification for personal data
 
 ### Data Classification
-| Category | Sensitivity | Retention | Storage |
-|----------|------------|-----------|---------|
-| Trading records | High | 7 years minimum | Taiwan-hosted PostgreSQL |
-| KYC documents | Critical | 5 years after account closure | Encrypted S3 (Taiwan region) |
-| Personal data | High | Duration of account + 3 years | Encrypted at rest (AES-256) |
-| Audit logs | Critical | 10 years | Append-only, Taiwan-hosted |
-| Market data | Medium | Indefinite | TimescaleDB (Taiwan region) |
-| Website analytics | Low | 2 years | Any region |
+| Category | Sensitivity | Retention | MVP Storage | Production Storage |
+|----------|------------|-----------|-------------|-------------------|
+| Trading records | High | 7 years minimum | D1 (asia) | GCP PostgreSQL (asia-east1) |
+| KYC documents | Critical | 5 years after account closure | R2 (encrypted) | GCP Cloud Storage (asia-east1) |
+| Personal data | High | Duration of account + 3 years | D1 (encrypted at rest) | GCP PostgreSQL (encrypted) |
+| Audit logs | Critical | 10 years | D1 append-only | GCP PostgreSQL append-only |
+| Market data | Medium | Indefinite | D1 | GCP PostgreSQL |
+| Website analytics | Low | 2 years | Cloudflare Analytics | Cloudflare Analytics |
 
 ## Audit Trail Requirements
 
@@ -190,12 +191,12 @@ Every user must acknowledge before first trade:
 ## Security Requirements
 
 ### Infrastructure
-- Encryption at rest: AES-256 for all databases and file storage
-- Encryption in transit: TLS 1.3 minimum
-- Key management: HSM-backed (AWS KMS or equivalent)
-- Network: VPC isolation, private subnets for databases
-- DDoS protection: CloudFlare or AWS Shield
-- WAF: OWASP Top 10 protection rules
+- Encryption at rest: D1 and R2 encrypted at rest by Cloudflare
+- Encryption in transit: TLS 1.3 minimum (Cloudflare default)
+- Key management: Cloudflare-managed encryption (upgrade to GCP Cloud KMS in Phase 5 if required)
+- Network: Cloudflare Workers run in isolated V8 sandboxes (no shared memory, no network access between workers)
+- DDoS protection: Cloudflare built-in (industry-leading)
+- WAF: Cloudflare WAF with OWASP Top 10 managed ruleset
 
 ### Application Security
 - Annual penetration testing by FSC-recognized firm

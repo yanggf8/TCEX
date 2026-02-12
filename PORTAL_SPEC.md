@@ -8,14 +8,17 @@ The SvelteKit application for Taiwan Capital Exchange, deployed on **Cloudflare 
 The public pages are specified in this document. The authenticated dashboard pages (portfolio, orders, wallet, etc.) are specified in `AUTH_SPEC.md`. Trading logic, matching, and settlement are handled by the backend services specified in `CORE_ENGINE.md`.
 
 ### Deployment Boundary
-Both public and authenticated pages ship as one SvelteKit app on Cloudflare Pages. Auth is enforced via SvelteKit `hooks.server.ts` — the `handle` hook checks JWT validity on `/dashboard/*` routes and redirects unauthenticated users to login. The backend API (Go) is a separate deployment on GCP.
+Both public and authenticated pages ship as one SvelteKit app on Cloudflare Pages. Auth is enforced via SvelteKit `hooks.server.ts` — the `handle` hook checks JWT validity on `/dashboard/*` routes and redirects unauthenticated users to login. API routes are SvelteKit `+server.ts` endpoints running on Cloudflare Workers (same codebase, no separate backend deployment).
 
-### Tech Stack (Portal)
+### Tech Stack (Portal + API)
 - **Framework**: SvelteKit (with `@sveltejs/adapter-cloudflare`)
-- **Styling**: Tailwind CSS
-- **UI Components**: Skeleton UI or Melt UI (headless)
-- **Deployment**: Cloudflare Pages + Workers
-- **i18n**: `sveltekit-i18n` or `paraglide-js`
+- **Styling**: Tailwind CSS 4
+- **Deployment**: Cloudflare Pages + Workers (single codebase)
+- **Database**: Cloudflare D1 (SQLite at edge)
+- **Sessions/Cache**: Cloudflare KV
+- **File Storage**: Cloudflare R2 (KYC documents)
+- **Real-time**: Cloudflare Durable Objects (WebSocket)
+- **i18n**: Custom store-based (`$lib/i18n.ts`)
 - **Charts**: lightweight-charts (TradingView open-source)
 
 ## Rendering Strategy
