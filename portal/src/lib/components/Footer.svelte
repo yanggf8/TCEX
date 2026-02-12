@@ -4,11 +4,11 @@
 	const currentYear = new Date().getFullYear();
 
 	const quickLinks = [
-		{ href: '/market', key: 'nav.market' },
-		{ href: '/products', key: 'nav.products' },
-		{ href: '/rules', key: 'nav.rules' },
+		{ href: '/markets/overview', key: 'nav.market' },
+		{ href: '/markets/products', key: 'nav.products' },
+		{ href: '/resources/rules', key: 'nav.rules' },
 		{ href: '/about', key: 'nav.about' },
-		{ href: '/contact', key: 'nav.contact' }
+		{ href: '/about/contact', key: 'nav.contact' }
 	];
 </script>
 
@@ -125,11 +125,11 @@
 				&copy; {currentYear} {$t('footer.copyright')}
 			</p>
 			<div class="flex items-center gap-4 text-sm">
-				<a href="/rules" class="text-gray-400 hover:text-white transition-colors">{$t('footer.disclaimer')}</a>
+				<a href="/resources/rules" class="text-gray-400 hover:text-white transition-colors">{$t('footer.disclaimer')}</a>
 				<span class="text-gray-700">|</span>
-				<a href="/rules" class="text-gray-400 hover:text-white transition-colors">{$t('footer.terms')}</a>
+				<a href="/resources/rules" class="text-gray-400 hover:text-white transition-colors">{$t('footer.terms')}</a>
 				<span class="text-gray-700">|</span>
-				<a href="/rules" class="text-gray-400 hover:text-white transition-colors">{$t('footer.privacy')}</a>
+				<a href="/resources/rules" class="text-gray-400 hover:text-white transition-colors">{$t('footer.privacy')}</a>
 				<span class="text-gray-700">|</span>
 				<button
 					type="button"

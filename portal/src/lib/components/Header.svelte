@@ -4,11 +4,11 @@
 	let mobileMenuOpen = $state(false);
 
 	const navKeys = [
-		{ href: '/products', key: 'nav.products' },
-		{ href: '/market', key: 'nav.market' },
+		{ href: '/markets/products', key: 'nav.products' },
+		{ href: '/markets/overview', key: 'nav.market' },
 		{ href: '/about', key: 'nav.about' },
-		{ href: '/rules', key: 'nav.rules' },
-		{ href: '/contact', key: 'nav.contact' }
+		{ href: '/resources/rules', key: 'nav.rules' },
+		{ href: '/about/contact', key: 'nav.contact' }
 	];
 </script>
 
