@@ -5,21 +5,24 @@ import {
 	generateId,
 	createAccessToken,
 	createRefreshToken,
-	createLogin2faToken
+	createLogin2faToken,
+	resolveJwtSecret,
+	ACCESS_TOKEN_MAX_AGE,
+	REFRESH_TOKEN_MAX_AGE,
+	LOGIN_2FA_TOKEN_MAX_AGE
 } from '$lib/server/auth';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
-const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
 
-export const POST: RequestHandler = async ({ request, platform, getClientAddress }) => {
+export const POST: RequestHandler = async ({ request, platform, cookies, getClientAddress }) => {
 	if (!platform?.env?.DB) {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
 
 	const db = platform.env.DB;
 	const kv = platform.env.SESSIONS;
-	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
+	const jwtSecret = resolveJwtSecret(platform);
 
 	let body: { email?: string; password?: string };
 	try {
@@ -142,7 +145,7 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 	const emailVerified = !!(user.email_verified);
 	const totpEnabled = !!(user.totp_enabled);
 
-	// If 2FA is enabled, return a temporary login_2fa token instead
+	// If 2FA is enabled, set a temporary login_2fa token as httpOnly cookie
 	if (totpEnabled) {
 		const login2faToken = await createLogin2faToken({
 			sub: user.id,
@@ -161,10 +164,15 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 			.bind(generateId(), user.id, user.id, getClientAddress(), now)
 			.run();
 
-		return json({
-			requires2fa: true,
-			loginToken: login2faToken
+		cookies.set('login2faToken', login2faToken, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'strict',
+			path: '/',
+			maxAge: LOGIN_2FA_TOKEN_MAX_AGE
 		});
+
+		return json({ requires2fa: true });
 	}
 
 	// Create tokens
@@ -184,7 +192,7 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		userId: user.id,
 		createdAt: now,
 		ip: getClientAddress()
-	}), { expirationTtl: 7 * 24 * 60 * 60 });
+	}), { expirationTtl: REFRESH_TOKEN_MAX_AGE });
 
 	// Audit log
 	await db
@@ -195,7 +203,23 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		.bind(generateId(), user.id, user.id, getClientAddress(), now)
 		.run();
 
-	const response = json({
+	// Set auth cookies
+	cookies.set('accessToken', accessToken, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'strict',
+		path: '/',
+		maxAge: ACCESS_TOKEN_MAX_AGE
+	});
+	cookies.set('refreshToken', refreshToken, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'strict',
+		path: '/api/v1/auth',
+		maxAge: REFRESH_TOKEN_MAX_AGE
+	});
+
+	return json({
 		user: {
 			id: user.id,
 			email: user.email,
@@ -203,14 +227,6 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 			kycLevel: user.kyc_level,
 			emailVerified,
 			totpEnabled
-		},
-		accessToken
+		}
 	});
-
-	response.headers.set(
-		'Set-Cookie',
-		`refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=${7 * 24 * 60 * 60}`
-	);
-
-	return response;
 };

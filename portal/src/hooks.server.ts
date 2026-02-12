@@ -1,13 +1,7 @@
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { verifyToken } from '$lib/server/auth';
-
-const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
-
-function getJwtSecret(platform: App.Platform | undefined): string {
-	return platform?.env?.JWT_SECRET || DEV_JWT_SECRET;
-}
+import { verifyToken, resolveJwtSecret } from '$lib/server/auth';
 
 const securityHeaders: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
@@ -39,22 +33,28 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	// Default: no user
 	event.locals.user = null;
 
-	// Extract access token from Authorization header or cookie
+	// Read access token from httpOnly cookie (primary) or Authorization header (API clients)
+	const cookieToken = event.cookies.get('accessToken');
 	const authHeader = event.request.headers.get('Authorization');
-	const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+	const accessToken = cookieToken || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
 
 	if (accessToken) {
-		const jwtSecret = getJwtSecret(event.platform);
-		const payload = await verifyToken(accessToken, jwtSecret);
-		if (payload && payload.type === 'access') {
-			event.locals.user = {
-				id: payload.sub,
-				email: payload.email,
-				displayName: payload.displayName,
-				kycLevel: payload.kycLevel,
-				emailVerified: payload.emailVerified ?? false,
-				totpEnabled: payload.totpEnabled ?? false
-			};
+		try {
+			const jwtSecret = resolveJwtSecret(event.platform);
+			const payload = await verifyToken(accessToken, jwtSecret);
+			if (payload && payload.type === 'access') {
+				event.locals.user = {
+					id: payload.sub,
+					email: payload.email,
+					displayName: payload.displayName,
+					kycLevel: payload.kycLevel,
+					emailVerified: payload.emailVerified ?? false,
+					totpEnabled: payload.totpEnabled ?? false
+				};
+			}
+		} catch (err) {
+			// JWT_SECRET not configured in production — log error, treat as unauthenticated
+			console.error('Auth error:', err);
 		}
 	}
 

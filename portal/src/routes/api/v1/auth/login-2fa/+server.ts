@@ -4,36 +4,44 @@ import {
 	verifyToken,
 	generateId,
 	createAccessToken,
-	createRefreshToken
+	createRefreshToken,
+	resolveJwtSecret,
+	ACCESS_TOKEN_MAX_AGE,
+	REFRESH_TOKEN_MAX_AGE
 } from '$lib/server/auth';
 import { require2fa } from '$lib/server/2fa-guard';
 
-const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
-
-export const POST: RequestHandler = async ({ request, platform, getClientAddress }) => {
+export const POST: RequestHandler = async ({ request, platform, cookies, getClientAddress }) => {
 	if (!platform?.env?.DB) {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
 
 	const db = platform.env.DB;
 	const kv = platform.env.SESSIONS;
-	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
+	const jwtSecret = resolveJwtSecret(platform);
 
-	let body: { loginToken?: string; totpCode?: string };
+	let body: { totpCode?: string };
 	try {
 		body = await request.json();
 	} catch {
 		return json({ error: { code: 'BAD_REQUEST', message: '無效的請求內容' } }, { status: 400 });
 	}
 
-	if (!body.loginToken || !body.totpCode) {
-		return json({ error: { code: 'BAD_REQUEST', message: '請提供登入令牌和驗證碼' } }, { status: 400 });
+	if (!body.totpCode) {
+		return json({ error: { code: 'BAD_REQUEST', message: '請提供驗證碼' } }, { status: 400 });
+	}
+
+	// Read login_2fa token from httpOnly cookie (not from request body)
+	const login2faToken = cookies.get('login2faToken');
+	if (!login2faToken) {
+		return json({ error: { code: 'NO_LOGIN_TOKEN', message: '登入令牌不存在或已過期，請重新登入' } }, { status: 401 });
 	}
 
 	// Verify the temporary login_2fa token
-	const payload = await verifyToken(body.loginToken, jwtSecret);
+	const payload = await verifyToken(login2faToken, jwtSecret);
 	if (!payload || payload.type !== 'login_2fa') {
-		return json({ error: { code: 'INVALID_TOKEN', message: '令牌無效或已過期' } }, { status: 401 });
+		cookies.delete('login2faToken', { path: '/' });
+		return json({ error: { code: 'INVALID_TOKEN', message: '令牌無效或已過期，請重新登入' } }, { status: 401 });
 	}
 
 	// Verify 2FA
@@ -41,6 +49,9 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 	if (!tfaResult.ok) {
 		return json({ error: { code: 'INVALID_2FA', message: tfaResult.message } }, { status: 403 });
 	}
+
+	// Clear the temporary login_2fa cookie
+	cookies.delete('login2faToken', { path: '/' });
 
 	// Issue full tokens
 	const now = new Date().toISOString();
@@ -60,7 +71,7 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		userId: payload.sub,
 		createdAt: now,
 		ip: getClientAddress()
-	}), { expirationTtl: 7 * 24 * 60 * 60 });
+	}), { expirationTtl: REFRESH_TOKEN_MAX_AGE });
 
 	// Audit log
 	await db
@@ -71,7 +82,23 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		.bind(generateId(), payload.sub, payload.sub, getClientAddress(), now)
 		.run();
 
-	const response = json({
+	// Set auth cookies
+	cookies.set('accessToken', accessToken, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'strict',
+		path: '/',
+		maxAge: ACCESS_TOKEN_MAX_AGE
+	});
+	cookies.set('refreshToken', refreshToken, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'strict',
+		path: '/api/v1/auth',
+		maxAge: REFRESH_TOKEN_MAX_AGE
+	});
+
+	return json({
 		user: {
 			id: payload.sub,
 			email: payload.email,
@@ -79,14 +106,6 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 			kycLevel: payload.kycLevel,
 			emailVerified: payload.emailVerified,
 			totpEnabled: payload.totpEnabled
-		},
-		accessToken
+		}
 	});
-
-	response.headers.set(
-		'Set-Cookie',
-		`refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=${7 * 24 * 60 * 60}`
-	);
-
-	return response;
 };

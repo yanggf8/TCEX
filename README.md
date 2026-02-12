@@ -145,6 +145,17 @@ TCEX/
 | 3.6 | WebSocket via DO Hibernation API | Live orderbook + trade feed, auto-reconnect client |
 | 3.7 | Trading UI (OrderBook, OrderForm, PriceChart, TradeHistory) | Full trading page with precision terminal aesthetic |
 
+### Security Hardening (post Phase 2+3)
+
+| Fix | Issue | Resolution |
+|-----|-------|------------|
+| Auth flow | Client stored JWT in sessionStorage, never sent to SSR | Switched to httpOnly cookie-based auth; hooks.server.ts reads from cookie |
+| LINE 2FA bypass | LINE OAuth callback skipped 2FA check, leaked JWT in URL | Added totp_enabled check; tokens set as httpOnly cookies, never in URL |
+| Engine rollback | Engine failure left orders stranded with locked funds | On engine error: mark order failed, unlock funds, audit log |
+| Price improvement | Buy fills at better price left excess funds locked | After match, calculate actual cost vs locked amount, unlock difference |
+| Wallet races | Concurrent withdraw/lock used read-then-write without CAS | Optimistic concurrency: conditional UPDATE WHERE balance = ? |
+| JWT dev fallback | Missing JWT_SECRET silently fell back to known dev key | Fail-loud in production via `resolveJwtSecret()`, dev-only fallback |
+
 ### Phase 4 — Revenue Sharing + Compliance
 
 | Step | Task | Deliverable |

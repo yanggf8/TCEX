@@ -1,4 +1,4 @@
-import { isValidAmount, isPositive, gte, gt, multiply, subtract, compare } from '$lib/utils/decimal';
+import { isValidAmount, isPositive, gte, multiply, subtract, add } from '$lib/utils/decimal';
 
 export interface OrderValidation {
 	valid: boolean;
@@ -75,16 +75,80 @@ export async function validateOrder(db: D1Database, check: PreTradeCheck): Promi
 	return { valid: true };
 }
 
-export async function lockFundsForBuy(db: D1Database, userId: string, amount: string): Promise<void> {
+/**
+ * Atomically lock funds for a buy order using optimistic concurrency.
+ * Uses conditional UPDATE with WHERE available_balance = ? to prevent
+ * race conditions where concurrent requests could overspend.
+ */
+export async function lockFundsForBuy(
+	db: D1Database,
+	userId: string,
+	amount: string
+): Promise<{ success: boolean }> {
 	const timestamp = new Date().toISOString();
+
+	// Read current balance
+	const wallet = await db
+		.prepare('SELECT available_balance, locked_balance FROM wallets WHERE user_id = ?')
+		.bind(userId)
+		.first<{ available_balance: string; locked_balance: string }>();
+
+	if (!wallet || !gte(wallet.available_balance, amount)) {
+		return { success: false };
+	}
+
+	const newAvailable = subtract(wallet.available_balance, amount);
+	const newLocked = add(wallet.locked_balance, amount);
+
+	// Conditional update: only succeeds if available_balance hasn't changed since we read it
+	const result = await db
+		.prepare(
+			`UPDATE wallets SET
+			   available_balance = ?,
+			   locked_balance = ?,
+			   updated_at = ?
+			 WHERE user_id = ? AND available_balance = ?`
+		)
+		.bind(newAvailable, newLocked, timestamp, userId, wallet.available_balance)
+		.run();
+
+	// If no rows were updated, another concurrent request modified the balance
+	if (!result.meta.changes || result.meta.changes === 0) {
+		return { success: false };
+	}
+
+	return { success: true };
+}
+
+/**
+ * Unlock previously locked funds (e.g., on order cancellation, engine failure,
+ * or price improvement refund). Uses optimistic concurrency on locked_balance.
+ */
+export async function unlockFunds(
+	db: D1Database,
+	userId: string,
+	amount: string
+): Promise<void> {
+	const wallet = await db
+		.prepare('SELECT available_balance, locked_balance FROM wallets WHERE user_id = ?')
+		.bind(userId)
+		.first<{ available_balance: string; locked_balance: string }>();
+
+	if (!wallet) return;
+
+	const newAvailable = add(wallet.available_balance, amount);
+	const newLocked = subtract(wallet.locked_balance, amount);
+	const timestamp = new Date().toISOString();
+
+	// Conditional update on locked_balance to prevent lost updates from concurrent unlocks
 	await db
 		.prepare(
 			`UPDATE wallets SET
-			   available_balance = CAST(CAST(available_balance AS REAL) - CAST(? AS REAL) AS TEXT),
-			   locked_balance = CAST(CAST(locked_balance AS REAL) + CAST(? AS REAL) AS TEXT),
+			   available_balance = ?,
+			   locked_balance = ?,
 			   updated_at = ?
-			 WHERE user_id = ?`
+			 WHERE user_id = ? AND locked_balance = ?`
 		)
-		.bind(amount, amount, timestamp, userId)
+		.bind(newAvailable, newLocked, timestamp, userId, wallet.locked_balance)
 		.run();
 }

@@ -92,6 +92,17 @@ export async function verifyToken(token: string, jwtSecret: string): Promise<JWT
 	}
 }
 
+export function resolveJwtSecret(platform: App.Platform | undefined): string {
+	const secret = platform?.env?.JWT_SECRET;
+	if (secret) return secret;
+	if (import.meta.env.DEV) return 'tcex-dev-jwt-secret-do-not-use-in-production';
+	throw new Error('FATAL: JWT_SECRET environment variable is not configured');
+}
+
+export const ACCESS_TOKEN_MAX_AGE = 900; // 15 minutes
+export const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
+export const LOGIN_2FA_TOKEN_MAX_AGE = 300; // 5 minutes
+
 export function generateId(): string {
 	return crypto.randomUUID();
 }

@@ -8,11 +8,16 @@
 	let error = $state('');
 	let loading = $state(false);
 
-	// 2FA state
-	let requires2fa = $state(false);
-	let loginToken = $state('');
+	// 2FA state — triggered by email/password login or LINE OAuth redirect
+	let requires2fa = $state(page.url.searchParams.get('requires2fa') === 'true');
 	let totpCode = $state('');
 	let twoFaLoading = $state(false);
+
+	// Check for LINE error
+	const lineError = page.url.searchParams.get('error');
+	if (lineError) {
+		error = lineError === 'line_denied' ? 'LINE 登入已取消' : `LINE 登入失敗: ${lineError}`;
+	}
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -33,17 +38,14 @@
 				return;
 			}
 
-			// Check if 2FA is required
+			// Check if 2FA is required (login2faToken set as httpOnly cookie by server)
 			if (data.requires2fa) {
 				requires2fa = true;
-				loginToken = data.loginToken;
 				return;
 			}
 
-			// Store access token
-			sessionStorage.setItem('accessToken', data.accessToken);
-
-			const redirect = page.url.searchParams.get('redirect') || '/';
+			// Success — accessToken is set as httpOnly cookie by server, just redirect
+			const redirect = page.url.searchParams.get('redirect') || '/dashboard';
 			goto(redirect);
 		} catch {
 			error = '網路錯誤，請稍後再試';
@@ -61,7 +63,7 @@
 			const res = await fetch('/api/v1/auth/login-2fa', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ loginToken, totpCode })
+				body: JSON.stringify({ totpCode })
 			});
 
 			const data: any = await res.json();
@@ -71,9 +73,8 @@
 				return;
 			}
 
-			sessionStorage.setItem('accessToken', data.accessToken);
-
-			const redirect = page.url.searchParams.get('redirect') || '/';
+			// Success — accessToken is set as httpOnly cookie by server, just redirect
+			const redirect = page.url.searchParams.get('redirect') || '/dashboard';
 			goto(redirect);
 		} catch {
 			error = '網路錯誤，請稍後再試';
@@ -135,7 +136,7 @@
 
 					<button
 						type="button"
-						onclick={() => { requires2fa = false; loginToken = ''; totpCode = ''; error = ''; }}
+						onclick={() => { requires2fa = false; totpCode = ''; error = ''; }}
 						class="w-full py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
 					>
 						{$t('common.back')}

@@ -1,8 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { verifyToken, generateId } from '$lib/server/auth';
-
-const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
+import { verifyToken, generateId, resolveJwtSecret } from '$lib/server/auth';
 
 export const POST: RequestHandler = async ({ request, cookies, platform, getClientAddress }) => {
 	if (!platform?.env?.DB) {
@@ -11,11 +9,12 @@ export const POST: RequestHandler = async ({ request, cookies, platform, getClie
 
 	const db = platform.env.DB;
 	const kv = platform.env.SESSIONS;
-	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
+	const jwtSecret = resolveJwtSecret(platform);
 
-	// Get access token from Authorization header
+	// Read access token from cookie or Authorization header
+	const cookieToken = cookies.get('accessToken');
 	const authHeader = request.headers.get('Authorization');
-	const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+	const accessToken = cookieToken || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
 
 	// Get refresh token from cookie
 	const refreshToken = cookies.get('refreshToken');
@@ -47,12 +46,9 @@ export const POST: RequestHandler = async ({ request, cookies, platform, getClie
 			.run();
 	}
 
-	// Clear refresh token cookie
-	const response = json({ success: true });
-	response.headers.set(
-		'Set-Cookie',
-		'refreshToken=; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=0'
-	);
+	// Clear all auth cookies
+	cookies.delete('accessToken', { path: '/' });
+	cookies.delete('refreshToken', { path: '/api/v1/auth' });
 
-	return response;
+	return json({ success: true });
 };

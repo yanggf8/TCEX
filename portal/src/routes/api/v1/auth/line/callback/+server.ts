@@ -1,11 +1,18 @@
 import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { exchangeLineCode, getLineProfile } from '$lib/server/line-oauth';
-import { generateId, createAccessToken, createRefreshToken } from '$lib/server/auth';
+import {
+	generateId,
+	createAccessToken,
+	createRefreshToken,
+	createLogin2faToken,
+	resolveJwtSecret,
+	ACCESS_TOKEN_MAX_AGE,
+	REFRESH_TOKEN_MAX_AGE,
+	LOGIN_2FA_TOKEN_MAX_AGE
+} from '$lib/server/auth';
 
-const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
-
-export const GET: RequestHandler = async ({ url, platform, getClientAddress }) => {
+export const GET: RequestHandler = async ({ url, platform, cookies, getClientAddress }) => {
 	if (!platform?.env?.DB || !platform?.env?.SESSIONS) {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
@@ -25,7 +32,7 @@ export const GET: RequestHandler = async ({ url, platform, getClientAddress }) =
 	const channelId = platform.env.LINE_CHANNEL_ID;
 	const channelSecret = platform.env.LINE_CHANNEL_SECRET;
 	const redirectUri = platform.env.LINE_REDIRECT_URI;
-	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
+	const jwtSecret = resolveJwtSecret(platform);
 
 	if (!channelId || !channelSecret || !redirectUri) {
 		throw redirect(303, '/login?error=line_not_configured');
@@ -115,13 +122,47 @@ export const GET: RequestHandler = async ({ url, platform, getClientAddress }) =
 			throw redirect(303, '/login?error=account_disabled');
 		}
 
+		const emailVerified = !!(user.email_verified);
+		const totpEnabled = !!(user.totp_enabled);
+
+		// If 2FA is enabled, redirect to 2FA step instead of issuing full tokens
+		if (totpEnabled) {
+			const login2faToken = await createLogin2faToken({
+				sub: user.id,
+				email: user.email,
+				displayName: user.display_name,
+				kycLevel: user.kyc_level,
+				emailVerified,
+				totpEnabled
+			}, jwtSecret);
+
+			cookies.set('login2faToken', login2faToken, {
+				httpOnly: true,
+				secure: true,
+				sameSite: 'lax',
+				path: '/',
+				maxAge: LOGIN_2FA_TOKEN_MAX_AGE
+			});
+
+			await db
+				.prepare(
+					`INSERT INTO audit_log (id, user_id, action, entity_type, entity_id, details, ip_address, created_at)
+					 VALUES (?, ?, 'login_line_2fa_required', 'user', ?, ?, ?, ?)`
+				)
+				.bind(generateId(), user.id, user.id, `LINE: ${lineProfile.displayName}`, getClientAddress(), now)
+				.run();
+
+			throw redirect(303, '/login?requires2fa=true');
+		}
+
+		// No 2FA — issue full tokens as httpOnly cookies
 		const tokenPayload = {
 			sub: user.id,
 			email: user.email,
 			displayName: user.display_name,
 			kycLevel: user.kyc_level,
-			emailVerified: !!(user.email_verified),
-			totpEnabled: !!(user.totp_enabled)
+			emailVerified,
+			totpEnabled
 		};
 
 		const accessToken = await createAccessToken(tokenPayload, jwtSecret);
@@ -131,7 +172,7 @@ export const GET: RequestHandler = async ({ url, platform, getClientAddress }) =
 			userId: user.id,
 			createdAt: now,
 			ip: getClientAddress()
-		}), { expirationTtl: 7 * 24 * 60 * 60 });
+		}), { expirationTtl: REFRESH_TOKEN_MAX_AGE });
 
 		await db
 			.prepare(
@@ -141,15 +182,23 @@ export const GET: RequestHandler = async ({ url, platform, getClientAddress }) =
 			.bind(generateId(), user.id, user.id, `LINE: ${lineProfile.displayName}`, getClientAddress(), now)
 			.run();
 
-		// Redirect with token in fragment (client-side retrieval)
-		const response = new Response(null, {
-			status: 303,
-			headers: {
-				Location: `/?lineLogin=success&token=${accessToken}`,
-				'Set-Cookie': `refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=${7 * 24 * 60 * 60}`
-			}
+		// Set auth cookies and redirect — no tokens in URL
+		cookies.set('accessToken', accessToken, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			path: '/',
+			maxAge: ACCESS_TOKEN_MAX_AGE
 		});
-		return response;
+		cookies.set('refreshToken', refreshToken, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			path: '/api/v1/auth',
+			maxAge: REFRESH_TOKEN_MAX_AGE
+		});
+
+		throw redirect(303, '/dashboard');
 	}
 
 	// Case 3: No existing link, not logged in — redirect to register/link page

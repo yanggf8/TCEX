@@ -1,20 +1,19 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { verifyToken } from '$lib/server/auth';
+import { verifyToken, resolveJwtSecret } from '$lib/server/auth';
 
-const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
-
-export const GET: RequestHandler = async ({ request, platform }) => {
+export const GET: RequestHandler = async ({ request, cookies, platform }) => {
 	if (!platform?.env?.DB) {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
 
 	const db = platform.env.DB;
-	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
+	const jwtSecret = resolveJwtSecret(platform);
 
-	// Get access token from Authorization header
+	// Read access token from cookie (primary) or Authorization header (API clients)
+	const cookieToken = cookies.get('accessToken');
 	const authHeader = request.headers.get('Authorization');
-	const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+	const accessToken = cookieToken || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
 
 	if (!accessToken) {
 		return json(

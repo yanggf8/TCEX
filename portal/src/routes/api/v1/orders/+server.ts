@@ -1,9 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { mapOrderWithListingRow } from '$lib/server/db';
-import { validateOrder, lockFundsForBuy } from '$lib/server/order-validation';
-import { multiply } from '$lib/utils/decimal';
+import { validateOrder, lockFundsForBuy, unlockFunds } from '$lib/server/order-validation';
+import { multiply, subtract, gte } from '$lib/utils/decimal';
 import { require2fa } from '$lib/server/2fa-guard';
+import { generateId } from '$lib/server/auth';
 
 export const GET: RequestHandler = async ({ url, locals, platform }) => {
 	if (!locals.user) {
@@ -119,6 +120,18 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		);
 	}
 
+	// Lock funds for buy orders BEFORE creating the order record
+	const lockedAmount = body.side === 'buy' ? multiply(body.quantity, body.price) : '0';
+	if (body.side === 'buy') {
+		const lockResult = await lockFundsForBuy(db, locals.user.id, lockedAmount);
+		if (!lockResult.success) {
+			return json(
+				{ error: { code: 'INSUFFICIENT_BALANCE', message: '餘額不足（並發操作衝突，請重試）' } },
+				{ status: 409 }
+			);
+		}
+	}
+
 	// Create order record
 	const orderId = crypto.randomUUID();
 	const timestamp = new Date().toISOString();
@@ -130,12 +143,6 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		)
 		.bind(orderId, locals.user.id, body.listingId, body.side, body.price, body.quantity, body.quantity, timestamp, timestamp)
 		.run();
-
-	// Lock funds for buy orders
-	if (body.side === 'buy') {
-		const lockAmount = multiply(body.quantity, body.price);
-		await lockFundsForBuy(db, locals.user.id, lockAmount);
-	}
 
 	// Forward to matching engine via Service Binding
 	const engineEnv = (platform.env as any).ENGINE as Fetcher | undefined;
@@ -159,11 +166,61 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 				}
 			);
 
-			const matchResult = await engineRes.json();
-			return json({ orderId, ...matchResult as object }, { status: 201 });
+			if (!engineRes.ok) {
+				throw new Error(`Engine returned ${engineRes.status}`);
+			}
+
+			const matchResult = await engineRes.json() as { trades?: Array<{ price: string; quantity: string }>; [key: string]: unknown };
+
+			// Fix #4: Price improvement — unlock excess locked funds for buy orders
+			if (body.side === 'buy' && matchResult.trades && matchResult.trades.length > 0) {
+				let actualCost = '0';
+				for (const trade of matchResult.trades) {
+					actualCost = (await import('$lib/utils/decimal')).add(
+						actualCost,
+						multiply(trade.quantity, trade.price)
+					);
+				}
+				// If filled at better price, unlock the difference
+				if (gte(lockedAmount, actualCost) && lockedAmount !== actualCost) {
+					const excess = subtract(lockedAmount, actualCost);
+					if (excess !== '0') {
+						await unlockFunds(db, locals.user.id, excess);
+					}
+				}
+			}
+
+			return json({ orderId, ...matchResult }, { status: 201 });
 		} catch (err) {
+			// Fix #3: Engine failure — rollback order and unlock funds
 			console.error('Engine error:', err);
-			return json({ orderId, status: 'pending', trades: [], message: 'Order placed, matching pending' }, { status: 201 });
+
+			const rollbackTimestamp = new Date().toISOString();
+
+			// Mark order as failed
+			await db
+				.prepare(`UPDATE orders SET status = 'failed', updated_at = ? WHERE id = ?`)
+				.bind(rollbackTimestamp, orderId)
+				.run();
+
+			// Unlock funds for buy orders
+			if (body.side === 'buy') {
+				await unlockFunds(db, locals.user.id, lockedAmount);
+			}
+
+			// Audit the failure
+			await db
+				.prepare(
+					`INSERT INTO audit_log (id, user_id, action, entity_type, entity_id, details, ip_address, created_at)
+					 VALUES (?, ?, 'order_engine_failure', 'order', ?, ?, '', ?)`
+				)
+				.bind(generateId(), locals.user.id, orderId, `Engine error: ${err instanceof Error ? err.message : 'unknown'}`, rollbackTimestamp)
+				.run();
+
+			return json(
+				{ error: { code: 'ENGINE_ERROR', message: '撮合引擎暫時無法使用，委託已取消' } },
+				{ status: 503 }
+			);
 		}
 	}
 

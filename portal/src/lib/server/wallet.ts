@@ -140,20 +140,29 @@ export async function withdraw(db: D1Database, userId: string, amount: string): 
 	const txId = generateId();
 	const timestamp = now();
 
-	const updateWallet = db
+	// Optimistic concurrency: conditional UPDATE with WHERE available_balance = ?
+	// Prevents race conditions where concurrent withdrawals could overspend
+	const updateResult = await db
 		.prepare(
-			`UPDATE wallets SET available_balance = ?, total_withdrawn = ?, updated_at = ? WHERE id = ?`
+			`UPDATE wallets SET available_balance = ?, total_withdrawn = ?, updated_at = ?
+			 WHERE id = ? AND available_balance = ?`
 		)
-		.bind(newBalance, newTotalWithdrawn, timestamp, wallet.id);
+		.bind(newBalance, newTotalWithdrawn, timestamp, wallet.id, wallet.availableBalance)
+		.run();
 
-	const insertTx = db
+	// If no rows updated, a concurrent request changed the balance — fail safely
+	if (!updateResult.meta.changes || updateResult.meta.changes === 0) {
+		return { success: false, error: 'insufficient_balance' };
+	}
+
+	// Balance updated successfully — now record the transaction
+	await db
 		.prepare(
 			`INSERT INTO wallet_transactions (id, wallet_id, user_id, type, amount, fee, balance_before, balance_after, reference_type, reference_id, description, status, created_at)
 			 VALUES (?, ?, ?, 'withdrawal', ?, '0', ?, ?, NULL, NULL, ?, 'completed', ?)`
 		)
-		.bind(txId, wallet.id, userId, amount, wallet.availableBalance, newBalance, 'Withdrawal', timestamp);
-
-	await db.batch([updateWallet, insertTx]);
+		.bind(txId, wallet.id, userId, amount, wallet.availableBalance, newBalance, 'Withdrawal', timestamp)
+		.run();
 
 	const updatedWallet: Wallet = {
 		...wallet,

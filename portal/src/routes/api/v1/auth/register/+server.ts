@@ -6,20 +6,21 @@ import {
 	validateEmail,
 	validatePassword,
 	createAccessToken,
-	createRefreshToken
+	createRefreshToken,
+	resolveJwtSecret,
+	ACCESS_TOKEN_MAX_AGE,
+	REFRESH_TOKEN_MAX_AGE
 } from '$lib/server/auth';
 import { generateOtp } from '$lib/server/email';
 
-const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
-
-export const POST: RequestHandler = async ({ request, platform, getClientAddress }) => {
+export const POST: RequestHandler = async ({ request, platform, cookies, getClientAddress }) => {
 	if (!platform?.env?.DB) {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
 
 	const db = platform.env.DB;
 	const kv = platform.env.SESSIONS;
-	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
+	const jwtSecret = resolveJwtSecret(platform);
 
 	let body: { email?: string; password?: string; displayName?: string };
 	try {
@@ -110,7 +111,7 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		userId,
 		createdAt: now,
 		ip: getClientAddress()
-	}), { expirationTtl: 7 * 24 * 60 * 60 });
+	}), { expirationTtl: REFRESH_TOKEN_MAX_AGE });
 
 	// Audit log
 	await db
@@ -121,7 +122,23 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		.bind(generateId(), userId, userId, getClientAddress(), now)
 		.run();
 
-	const response = json(
+	// Set auth cookies
+	cookies.set('accessToken', accessToken, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'strict',
+		path: '/',
+		maxAge: ACCESS_TOKEN_MAX_AGE
+	});
+	cookies.set('refreshToken', refreshToken, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'strict',
+		path: '/api/v1/auth',
+		maxAge: REFRESH_TOKEN_MAX_AGE
+	});
+
+	return json(
 		{
 			user: {
 				id: userId,
@@ -130,16 +147,8 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 				kycLevel: 0,
 				emailVerified: false,
 				totpEnabled: false
-			},
-			accessToken
+			}
 		},
 		{ status: 201 }
 	);
-
-	response.headers.set(
-		'Set-Cookie',
-		`refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=${7 * 24 * 60 * 60}`
-	);
-
-	return response;
 };
