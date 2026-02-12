@@ -2,6 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { verifyToken, generateId } from '$lib/server/auth';
 
+const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
+
 export const POST: RequestHandler = async ({ request, cookies, platform, getClientAddress }) => {
 	if (!platform?.env?.DB) {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
@@ -9,6 +11,7 @@ export const POST: RequestHandler = async ({ request, cookies, platform, getClie
 
 	const db = platform.env.DB;
 	const kv = platform.env.SESSIONS;
+	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
 
 	// Get access token from Authorization header
 	const authHeader = request.headers.get('Authorization');
@@ -21,7 +24,7 @@ export const POST: RequestHandler = async ({ request, cookies, platform, getClie
 
 	// Try to identify user from access token
 	if (accessToken) {
-		const payload = await verifyToken(accessToken);
+		const payload = await verifyToken(accessToken, jwtSecret);
 		if (payload) {
 			userId = payload.sub;
 		}

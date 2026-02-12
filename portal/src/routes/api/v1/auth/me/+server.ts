@@ -2,12 +2,15 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { verifyToken } from '$lib/server/auth';
 
+const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
+
 export const GET: RequestHandler = async ({ request, platform }) => {
 	if (!platform?.env?.DB) {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
 
 	const db = platform.env.DB;
+	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
 
 	// Get access token from Authorization header
 	const authHeader = request.headers.get('Authorization');
@@ -20,7 +23,7 @@ export const GET: RequestHandler = async ({ request, platform }) => {
 		);
 	}
 
-	const payload = await verifyToken(accessToken);
+	const payload = await verifyToken(accessToken, jwtSecret);
 	if (!payload || payload.type !== 'access') {
 		return json(
 			{ error: { code: 'INVALID_TOKEN', message: '無效的認證令牌' } },
@@ -31,7 +34,7 @@ export const GET: RequestHandler = async ({ request, platform }) => {
 	// Fetch fresh user data from D1
 	const user = await db
 		.prepare(
-			'SELECT id, email, display_name, phone, kyc_level, status, created_at FROM users WHERE id = ?'
+			'SELECT id, email, display_name, phone, kyc_level, status, email_verified, totp_enabled, created_at FROM users WHERE id = ?'
 		)
 		.bind(payload.sub)
 		.first<{
@@ -41,6 +44,8 @@ export const GET: RequestHandler = async ({ request, platform }) => {
 			phone: string | null;
 			kyc_level: number;
 			status: string;
+			email_verified: number | null;
+			totp_enabled: number | null;
 			created_at: string;
 		}>();
 
@@ -58,6 +63,8 @@ export const GET: RequestHandler = async ({ request, platform }) => {
 			displayName: user.display_name,
 			phone: user.phone,
 			kycLevel: user.kyc_level,
+			emailVerified: !!(user.email_verified),
+			totpEnabled: !!(user.totp_enabled),
 			createdAt: user.created_at
 		}
 	});

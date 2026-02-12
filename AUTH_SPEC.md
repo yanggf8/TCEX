@@ -11,7 +11,7 @@ The authenticated dashboard pages (`/dashboard/*`) are part of the same SvelteKi
 ### Primary: Email + Password
 - Email verification required
 - Password requirements: 12+ chars, mixed case, number, special char
-- bcrypt hashing (cost factor 12)
+- PBKDF2-SHA256 hashing (100k iterations, 16-byte salt)
 - Account lockout after 5 failed attempts (15-minute cooldown)
 
 ### Social Login: LINE

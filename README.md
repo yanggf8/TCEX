@@ -37,10 +37,10 @@ TCEX/
 ├── portal/                # SvelteKit app (Cloudflare Pages + Workers)
 │   └── src/
 │       ├── lib/components/ # OrderBook, OrderForm, TradeHistory, PriceChart, Header, Footer...
-│       ├── lib/server/     # db.ts, wallet.ts, order-validation.ts
+│       ├── lib/server/     # auth.ts, db.ts, wallet.ts, totp.ts, 2fa-guard.ts, email.ts, sms.ts, rate-limit.ts, kyc-rules.ts, line-oauth.ts
 │       ├── lib/stores/     # websocket.ts, orderbook.ts, trades.ts
 │       ├── lib/utils/      # decimal.ts (BigInt-based financial arithmetic)
-│       ├── lib/types/      # wallet.ts, order.ts, portfolio.ts, trading.ts
+│       ├── lib/types/      # wallet.ts, order.ts, portfolio.ts, trading.ts, auth.ts, kyc.ts
 │       └── routes/         # Public pages + /dashboard/* + /api/v1/*
 ├── engine/                # Matching engine Worker (Cloudflare Workers + Durable Objects)
 │   └── src/
@@ -49,7 +49,7 @@ TCEX/
 │       ├── orderbook.ts    # In-memory orderbook (price-time priority, FIFO)
 │       ├── types.ts        # Order, Trade, PriceLevel types
 │       └── decimal.ts      # Decimal arithmetic (shared with portal)
-├── migrations/            # D1 SQL migrations (users, trading tables, distributions)
+├── migrations/            # D1 SQL migrations (users, trading, distributions, email verification, TOTP, KYC, LINE)
 ├── scraper.py             # Web scraper for MCEX reference data
 ├── mcex_scraped_data.json # Scraped structure and content
 └── README.md              # This file
@@ -112,17 +112,26 @@ TCEX/
 | 1.5 | Build content pages: Products, Market, Rules, About, Contact, Login, Register | All routes with i18n |
 | 1.6 | Deploy to Cloudflare Pages | **Live URL: tcex-portal.pages.dev** |
 
-### Phase 2 — Auth + User System (Cloudflare-native)
+### Phase 2 — Auth + User System (DONE)
 
 | Step | Task | Deliverable |
 |------|------|-------------|
 | 2.1 | Set up D1 database + users schema | Database foundation |
 | 2.2 | API routes: register, login, logout (`/api/auth/*`) | Auth endpoints in SvelteKit |
 | 2.3 | JWT sessions via KV + hooks.server.ts guard | Protected dashboard routes |
-| 2.4 | LINE Login OAuth | Social login for Taiwan users |
-| 2.5 | 2FA (TOTP via Google Authenticator) | Mandatory for trading |
-| 2.6 | KYC flow (L0→L1→L2: email → phone → ID) | Identity verification pipeline |
-| 2.7 | User dashboard shell (layout, sidebar) | Authenticated area scaffold |
+| 2.4 | JWT secret from env (`JWT_SECRET`), PBKDF2 password hashing | Security hardening |
+| 2.5 | Email verification (6-digit OTP, rate-limited resend) | Email verify flow |
+| 2.6 | 2FA TOTP (`otpauth` + Web Crypto, backup codes) | Setup/verify/disable + login-2fa flow |
+| 2.7 | 2FA enforcement on orders, withdrawals, password change | Financial transaction security |
+| 2.8 | KYC flow L0→L1→L2 (email → phone → ID + personal info) | Identity verification pipeline with auto-approve L1 |
+| 2.9 | Phone verification (SMS OTP, rate-limited) | Phone verify for KYC L1 |
+| 2.10 | KYC document upload to R2 | ID document storage |
+| 2.11 | KYC gating (L2 for trading, L1 for withdrawals) | Level-based access control |
+| 2.12 | LINE Login OAuth (auth, callback, link/unlink) | Social login for Taiwan users |
+| 2.13 | Settings UI (profile, email verify, 2FA, KYC upgrade, LINE) | Full settings page |
+| 2.14 | Login UI with 2FA step + LINE button | Enhanced login flow |
+| 2.15 | KV-based rate limiter, error helpers, i18n for all new features | Shared utilities |
+| 2.16 | User dashboard shell (layout, sidebar) | Authenticated area scaffold |
 
 ### Phase 3 — Trading Core (DONE)
 

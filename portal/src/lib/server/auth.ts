@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode('tcex-jwt-secret-change-in-production');
 const JWT_ISSUER = 'tcex';
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
@@ -10,7 +9,13 @@ export interface JWTPayload {
 	email: string;
 	displayName: string | null;
 	kycLevel: number;
-	type: 'access' | 'refresh';
+	emailVerified: boolean;
+	totpEnabled: boolean;
+	type: 'access' | 'refresh' | 'login_2fa';
+}
+
+function getJwtSecret(secret: string): Uint8Array {
+	return new TextEncoder().encode(secret);
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -51,27 +56,36 @@ export async function verifyPassword(password: string, stored: string): Promise<
 	return computedHex === hashHex;
 }
 
-export async function createAccessToken(payload: Omit<JWTPayload, 'type'>): Promise<string> {
+export async function createAccessToken(payload: Omit<JWTPayload, 'type'>, jwtSecret: string): Promise<string> {
 	return new SignJWT({ ...payload, type: 'access' as const })
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuer(JWT_ISSUER)
 		.setIssuedAt()
 		.setExpirationTime(ACCESS_TOKEN_EXPIRY)
-		.sign(JWT_SECRET);
+		.sign(getJwtSecret(jwtSecret));
 }
 
-export async function createRefreshToken(payload: Omit<JWTPayload, 'type'>): Promise<string> {
+export async function createRefreshToken(payload: Omit<JWTPayload, 'type'>, jwtSecret: string): Promise<string> {
 	return new SignJWT({ ...payload, type: 'refresh' as const })
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuer(JWT_ISSUER)
 		.setIssuedAt()
 		.setExpirationTime(REFRESH_TOKEN_EXPIRY)
-		.sign(JWT_SECRET);
+		.sign(getJwtSecret(jwtSecret));
 }
 
-export async function verifyToken(token: string): Promise<JWTPayload | null> {
+export async function createLogin2faToken(payload: Omit<JWTPayload, 'type'>, jwtSecret: string): Promise<string> {
+	return new SignJWT({ ...payload, type: 'login_2fa' as const })
+		.setProtectedHeader({ alg: 'HS256' })
+		.setIssuer(JWT_ISSUER)
+		.setIssuedAt()
+		.setExpirationTime('5m')
+		.sign(getJwtSecret(jwtSecret));
+}
+
+export async function verifyToken(token: string, jwtSecret: string): Promise<JWTPayload | null> {
 	try {
-		const { payload } = await jwtVerify(token, JWT_SECRET, { issuer: JWT_ISSUER });
+		const { payload } = await jwtVerify(token, getJwtSecret(jwtSecret), { issuer: JWT_ISSUER });
 		return payload as unknown as JWTPayload;
 	} catch {
 		return null;

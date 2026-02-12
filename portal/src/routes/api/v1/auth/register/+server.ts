@@ -8,6 +8,9 @@ import {
 	createAccessToken,
 	createRefreshToken
 } from '$lib/server/auth';
+import { generateOtp } from '$lib/server/email';
+
+const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
 
 export const POST: RequestHandler = async ({ request, platform, getClientAddress }) => {
 	if (!platform?.env?.DB) {
@@ -16,6 +19,7 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 
 	const db = platform.env.DB;
 	const kv = platform.env.SESSIONS;
+	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
 
 	let body: { email?: string; password?: string; displayName?: string };
 	try {
@@ -68,28 +72,45 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 
 	await db
 		.prepare(
-			`INSERT INTO users (id, email, password_hash, display_name, kyc_level, status, failed_login_attempts, created_at, updated_at)
-			 VALUES (?, ?, ?, ?, 0, 'active', 0, ?, ?)`
+			`INSERT INTO users (id, email, password_hash, display_name, kyc_level, status, failed_login_attempts, email_verified, totp_enabled, created_at, updated_at)
+			 VALUES (?, ?, ?, ?, 0, 'active', 0, 0, 0, ?, ?)`
 		)
 		.bind(userId, email.toLowerCase(), passwordHash, displayName || null, now, now)
 		.run();
+
+	// Generate email verification OTP
+	const otp = generateOtp();
+	const otpExpiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
+
+	await db
+		.prepare(
+			`INSERT INTO email_verifications (id, user_id, code, expires_at, created_at)
+			 VALUES (?, ?, ?, ?, ?)`
+		)
+		.bind(generateId(), userId, otp, otpExpiry, now)
+		.run();
+
+	// Send verification email (console in dev)
+	console.log(`[EMAIL] Verification code for ${email.toLowerCase()}: ${otp}`);
 
 	// Create tokens
 	const tokenPayload = {
 		sub: userId,
 		email: email.toLowerCase(),
 		displayName: displayName || null,
-		kycLevel: 0
+		kycLevel: 0,
+		emailVerified: false,
+		totpEnabled: false
 	};
-	const accessToken = await createAccessToken(tokenPayload);
-	const refreshToken = await createRefreshToken(tokenPayload);
+	const accessToken = await createAccessToken(tokenPayload, jwtSecret);
+	const refreshToken = await createRefreshToken(tokenPayload, jwtSecret);
 
-	// Store refresh token in KV (for session tracking / revocation)
+	// Store refresh token in KV
 	await kv.put(`session:${userId}:${refreshToken.slice(-16)}`, JSON.stringify({
 		userId,
 		createdAt: now,
 		ip: getClientAddress()
-	}), { expirationTtl: 7 * 24 * 60 * 60 }); // 7 days
+	}), { expirationTtl: 7 * 24 * 60 * 60 });
 
 	// Audit log
 	await db
@@ -100,14 +121,15 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		.bind(generateId(), userId, userId, getClientAddress(), now)
 		.run();
 
-	// Return tokens — refresh token as httpOnly cookie
 	const response = json(
 		{
 			user: {
 				id: userId,
 				email: email.toLowerCase(),
 				displayName: displayName || null,
-				kycLevel: 0
+				kycLevel: 0,
+				emailVerified: false,
+				totpEnabled: false
 			},
 			accessToken
 		},

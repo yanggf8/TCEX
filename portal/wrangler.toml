@@ -15,3 +15,7 @@ id = "2ff4e3eb499549fea9291ec36f320cc3"
 [[services]]
 binding = "ENGINE"
 service = "tcex-engine"
+
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "tcex-documents"

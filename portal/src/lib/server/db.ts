@@ -2,6 +2,8 @@ import type { Product, Listing, ListingSummary } from '$lib/types/trading';
 import type { Wallet, WalletTransaction, WalletTransactionType } from '$lib/types/wallet';
 import type { Order, OrderWithListing, OrderSide, OrderType, OrderStatus } from '$lib/types/order';
 import type { Position, PositionWithListing } from '$lib/types/portfolio';
+import type { EmailVerification } from '$lib/types/auth';
+import type { KycApplication, KycDocument, KycStatus } from '$lib/types/kyc';
 
 interface ProductRow {
 	id: string;
@@ -287,5 +289,109 @@ export function mapWatchlistItemRow(row: WatchlistItemRow): WatchlistItem {
 		listingYieldRate: row.listing_yield_rate,
 		listingRiskLevel: row.listing_risk_level,
 		listingStatus: row.listing_status
+	};
+}
+
+// Email verification mapper
+interface EmailVerificationRow {
+	id: string;
+	user_id: string;
+	code: string;
+	expires_at: string;
+	used: number;
+	created_at: string;
+}
+
+export function mapEmailVerificationRow(row: EmailVerificationRow): EmailVerification {
+	return {
+		id: row.id,
+		userId: row.user_id,
+		code: row.code,
+		expiresAt: row.expires_at,
+		used: !!(row.used),
+		createdAt: row.created_at
+	};
+}
+
+// KYC application mapper
+interface KycApplicationRow {
+	id: string;
+	user_id: string;
+	level: number;
+	status: string;
+	reviewer_notes: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export function mapKycApplicationRow(row: KycApplicationRow): KycApplication {
+	return {
+		id: row.id,
+		userId: row.user_id,
+		level: row.level,
+		status: row.status as KycStatus,
+		reviewerNotes: row.reviewer_notes,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
+	};
+}
+
+// KYC document mapper
+interface KycDocumentRow {
+	id: string;
+	user_id: string;
+	application_id: string;
+	document_type: string;
+	r2_key: string;
+	file_name: string;
+	content_type: string;
+	file_size: number;
+	created_at: string;
+}
+
+export function mapKycDocumentRow(row: KycDocumentRow): KycDocument {
+	return {
+		id: row.id,
+		userId: row.user_id,
+		applicationId: row.application_id,
+		documentType: row.document_type,
+		r2Key: row.r2_key,
+		fileName: row.file_name,
+		contentType: row.content_type,
+		fileSize: row.file_size,
+		createdAt: row.created_at
+	};
+}
+
+// LINE account mapper
+export interface LineAccount {
+	id: string;
+	userId: string;
+	lineUserId: string;
+	displayName: string | null;
+	pictureUrl: string | null;
+	createdAt: string;
+	updatedAt: string;
+}
+
+interface LineAccountRow {
+	id: string;
+	user_id: string;
+	line_user_id: string;
+	display_name: string | null;
+	picture_url: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export function mapLineAccountRow(row: LineAccountRow): LineAccount {
+	return {
+		id: row.id,
+		userId: row.user_id,
+		lineUserId: row.line_user_id,
+		displayName: row.display_name,
+		pictureUrl: row.picture_url,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
 	};
 }

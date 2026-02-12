@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { withdraw } from '$lib/server/wallet';
+import { require2fa } from '$lib/server/2fa-guard';
 
 export const POST: RequestHandler = async ({ request, locals, platform }) => {
 	if (!locals.user) {
@@ -11,7 +12,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
 
-	let body: { amount?: string };
+	let body: { amount?: string; totpCode?: string };
 	try {
 		body = await request.json();
 	} catch {
@@ -22,7 +23,20 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		return json({ error: { code: 'BAD_REQUEST', message: '請輸入金額' } }, { status: 400 });
 	}
 
-	const result = await withdraw(platform.env.DB, locals.user.id, body.amount);
+	const db = platform.env.DB;
+
+	// KYC L1 gate for withdrawals
+	if (locals.user.kycLevel < 1) {
+		return json({ error: { code: 'KYC_REQUIRED', message: '請先完成基本身份驗證才能出金' } }, { status: 403 });
+	}
+
+	// 2FA check
+	const tfaResult = await require2fa(db, locals.user.id, body.totpCode);
+	if (!tfaResult.ok) {
+		return json({ error: { code: 'TOTP_REQUIRED', message: tfaResult.message } }, { status: 403 });
+	}
+
+	const result = await withdraw(db, locals.user.id, body.amount);
 
 	if (!result.success) {
 		const messages: Record<string, string> = {

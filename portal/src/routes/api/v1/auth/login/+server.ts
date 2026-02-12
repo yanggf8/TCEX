@@ -4,11 +4,13 @@ import {
 	verifyPassword,
 	generateId,
 	createAccessToken,
-	createRefreshToken
+	createRefreshToken,
+	createLogin2faToken
 } from '$lib/server/auth';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
+const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
 
 export const POST: RequestHandler = async ({ request, platform, getClientAddress }) => {
 	if (!platform?.env?.DB) {
@@ -17,6 +19,7 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 
 	const db = platform.env.DB;
 	const kv = platform.env.SESSIONS;
+	const jwtSecret = platform.env.JWT_SECRET || DEV_JWT_SECRET;
 
 	let body: { email?: string; password?: string };
 	try {
@@ -37,7 +40,7 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 	// Find user
 	const user = await db
 		.prepare(
-			'SELECT id, email, password_hash, display_name, kyc_level, status, failed_login_attempts, locked_until FROM users WHERE email = ?'
+			'SELECT id, email, password_hash, display_name, kyc_level, status, failed_login_attempts, locked_until, email_verified, totp_enabled FROM users WHERE email = ?'
 		)
 		.bind(email.toLowerCase())
 		.first<{
@@ -49,10 +52,11 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 			status: string;
 			failed_login_attempts: number;
 			locked_until: string | null;
+			email_verified: number | null;
+			totp_enabled: number | null;
 		}>();
 
 	if (!user) {
-		// Generic error to prevent email enumeration
 		return json(
 			{ error: { code: 'INVALID_CREDENTIALS', message: '電子郵件或密碼不正確' } },
 			{ status: 401 }
@@ -76,7 +80,6 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 				{ status: 429 }
 			);
 		}
-		// Lockout expired — reset
 		await db
 			.prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL, updated_at = ? WHERE id = ?')
 			.bind(new Date().toISOString(), user.id)
@@ -94,14 +97,12 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		const remaining = MAX_FAILED_ATTEMPTS - attempts;
 
 		if (attempts >= MAX_FAILED_ATTEMPTS) {
-			// Lock the account
 			const lockUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000).toISOString();
 			await db
 				.prepare('UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?')
 				.bind(attempts, lockUntil, now, user.id)
 				.run();
 
-			// Audit log
 			await db
 				.prepare(
 					`INSERT INTO audit_log (id, user_id, action, entity_type, entity_id, details, ip_address, created_at)
@@ -116,7 +117,6 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 			);
 		}
 
-		// Increment failed attempts
 		await db
 			.prepare('UPDATE users SET failed_login_attempts = ?, updated_at = ? WHERE id = ?')
 			.bind(attempts, now, user.id)
@@ -139,15 +139,45 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 		.bind(now, user.id)
 		.run();
 
+	const emailVerified = !!(user.email_verified);
+	const totpEnabled = !!(user.totp_enabled);
+
+	// If 2FA is enabled, return a temporary login_2fa token instead
+	if (totpEnabled) {
+		const login2faToken = await createLogin2faToken({
+			sub: user.id,
+			email: user.email,
+			displayName: user.display_name,
+			kycLevel: user.kyc_level,
+			emailVerified,
+			totpEnabled
+		}, jwtSecret);
+
+		await db
+			.prepare(
+				`INSERT INTO audit_log (id, user_id, action, entity_type, entity_id, ip_address, created_at)
+				 VALUES (?, ?, 'login_2fa_required', 'user', ?, ?, ?)`
+			)
+			.bind(generateId(), user.id, user.id, getClientAddress(), now)
+			.run();
+
+		return json({
+			requires2fa: true,
+			loginToken: login2faToken
+		});
+	}
+
 	// Create tokens
 	const tokenPayload = {
 		sub: user.id,
 		email: user.email,
 		displayName: user.display_name,
-		kycLevel: user.kyc_level
+		kycLevel: user.kyc_level,
+		emailVerified,
+		totpEnabled
 	};
-	const accessToken = await createAccessToken(tokenPayload);
-	const refreshToken = await createRefreshToken(tokenPayload);
+	const accessToken = await createAccessToken(tokenPayload, jwtSecret);
+	const refreshToken = await createRefreshToken(tokenPayload, jwtSecret);
 
 	// Store session in KV
 	await kv.put(`session:${user.id}:${refreshToken.slice(-16)}`, JSON.stringify({
@@ -170,7 +200,9 @@ export const POST: RequestHandler = async ({ request, platform, getClientAddress
 			id: user.id,
 			email: user.email,
 			displayName: user.display_name,
-			kycLevel: user.kyc_level
+			kycLevel: user.kyc_level,
+			emailVerified,
+			totpEnabled
 		},
 		accessToken
 	});

@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { mapOrderWithListingRow } from '$lib/server/db';
 import { validateOrder, lockFundsForBuy } from '$lib/server/order-validation';
 import { multiply } from '$lib/utils/decimal';
+import { require2fa } from '$lib/server/2fa-guard';
 
 export const GET: RequestHandler = async ({ url, locals, platform }) => {
 	if (!locals.user) {
@@ -64,7 +65,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		return json({ error: { code: 'SERVICE_UNAVAILABLE', message: '服務暫時無法使用' } }, { status: 503 });
 	}
 
-	let body: { listingId?: string; side?: string; price?: string; quantity?: string };
+	let body: { listingId?: string; side?: string; price?: string; quantity?: string; totpCode?: string };
 	try {
 		body = await request.json();
 	} catch {
@@ -80,6 +81,17 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 	}
 
 	const db = platform.env.DB;
+
+	// KYC L2 gate
+	if (locals.user.kycLevel < 2) {
+		return json({ error: { code: 'KYC_REQUIRED', message: '請先完成 L2 身份驗證才能交易' } }, { status: 403 });
+	}
+
+	// 2FA check
+	const tfaResult = await require2fa(db, locals.user.id, body.totpCode);
+	if (!tfaResult.ok) {
+		return json({ error: { code: 'TOTP_REQUIRED', message: tfaResult.message } }, { status: 403 });
+	}
 
 	// Pre-trade validation
 	const validation = await validateOrder(db, {
@@ -150,12 +162,10 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			const matchResult = await engineRes.json();
 			return json({ orderId, ...matchResult as object }, { status: 201 });
 		} catch (err) {
-			// Engine unavailable — order is created but unmatched
 			console.error('Engine error:', err);
 			return json({ orderId, status: 'pending', trades: [], message: 'Order placed, matching pending' }, { status: 201 });
 		}
 	}
 
-	// No engine binding — return order as pending
 	return json({ orderId, status: 'pending', trades: [] }, { status: 201 });
 };

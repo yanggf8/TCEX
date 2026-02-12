@@ -8,6 +8,12 @@
 	let error = $state('');
 	let loading = $state(false);
 
+	// 2FA state
+	let requires2fa = $state(false);
+	let loginToken = $state('');
+	let totpCode = $state('');
+	let twoFaLoading = $state(false);
+
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		error = '';
@@ -27,16 +33,52 @@
 				return;
 			}
 
-			// Store access token in memory (not localStorage for security)
+			// Check if 2FA is required
+			if (data.requires2fa) {
+				requires2fa = true;
+				loginToken = data.loginToken;
+				return;
+			}
+
+			// Store access token
 			sessionStorage.setItem('accessToken', data.accessToken);
 
-			// Redirect to intended page or dashboard
 			const redirect = page.url.searchParams.get('redirect') || '/';
 			goto(redirect);
 		} catch {
 			error = '網路錯誤，請稍後再試';
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function handle2faSubmit(e: Event) {
+		e.preventDefault();
+		error = '';
+		twoFaLoading = true;
+
+		try {
+			const res = await fetch('/api/v1/auth/login-2fa', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ loginToken, totpCode })
+			});
+
+			const data: any = await res.json();
+
+			if (!res.ok) {
+				error = data.error?.message || '驗證失敗';
+				return;
+			}
+
+			sessionStorage.setItem('accessToken', data.accessToken);
+
+			const redirect = page.url.searchParams.get('redirect') || '/';
+			goto(redirect);
+		} catch {
+			error = '網路錯誤，請稍後再試';
+		} finally {
+			twoFaLoading = false;
 		}
 	}
 </script>
@@ -60,45 +102,97 @@
 				</div>
 			{/if}
 
-			<form onsubmit={handleSubmit} class="space-y-5">
-				<div>
-					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-						{$t('login.email')}
-					</label>
-					<input
-						id="email"
-						type="email"
-						bind:value={email}
-						placeholder={$t('login.emailPlaceholder')}
-						required
-						autocomplete="email"
-						class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-					/>
-				</div>
+			{#if requires2fa}
+				<!-- 2FA Step -->
+				<form onsubmit={handle2faSubmit} class="space-y-5">
+					<div class="text-center mb-4">
+						<p class="text-sm text-gray-600">{$t('twofa.loginPrompt')}</p>
+					</div>
+					<div>
+						<label for="totpCode" class="block text-sm font-medium text-gray-700 mb-1">
+							{$t('twofa.code')}
+						</label>
+						<input
+							id="totpCode"
+							type="text"
+							bind:value={totpCode}
+							maxlength="8"
+							placeholder={$t('twofa.enterCode')}
+							required
+							autocomplete="one-time-code"
+							class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center tracking-widest"
+						/>
+						<p class="mt-1 text-xs text-gray-400">{$t('twofa.orBackupCode')}</p>
+					</div>
 
-				<div>
-					<label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-						{$t('login.password')}
-					</label>
-					<input
-						id="password"
-						type="password"
-						bind:value={password}
-						placeholder={$t('login.passwordPlaceholder')}
-						required
-						autocomplete="current-password"
-						class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-					/>
-				</div>
+					<button
+						type="submit"
+						disabled={twoFaLoading || !totpCode}
+						class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white text-sm font-medium rounded-lg transition-colors"
+					>
+						{twoFaLoading ? $t('common.loading') : $t('twofa.verifyLogin')}
+					</button>
 
-				<button
-					type="submit"
-					disabled={loading}
-					class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white text-sm font-medium rounded-lg transition-colors"
-				>
-					{loading ? $t('login.submitting') : $t('login.submit')}
-				</button>
-			</form>
+					<button
+						type="button"
+						onclick={() => { requires2fa = false; loginToken = ''; totpCode = ''; error = ''; }}
+						class="w-full py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+					>
+						{$t('common.back')}
+					</button>
+				</form>
+			{:else}
+				<!-- Login Form -->
+				<form onsubmit={handleSubmit} class="space-y-5">
+					<div>
+						<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+							{$t('login.email')}
+						</label>
+						<input
+							id="email"
+							type="email"
+							bind:value={email}
+							placeholder={$t('login.emailPlaceholder')}
+							required
+							autocomplete="email"
+							class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+						/>
+					</div>
+
+					<div>
+						<label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+							{$t('login.password')}
+						</label>
+						<input
+							id="password"
+							type="password"
+							bind:value={password}
+							placeholder={$t('login.passwordPlaceholder')}
+							required
+							autocomplete="current-password"
+							class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+						/>
+					</div>
+
+					<button
+						type="submit"
+						disabled={loading}
+						class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white text-sm font-medium rounded-lg transition-colors"
+					>
+						{loading ? $t('login.submitting') : $t('login.submit')}
+					</button>
+				</form>
+
+				<!-- LINE Login -->
+				<div class="mt-6 pt-6 border-t border-gray-200">
+					<a
+						href="/api/v1/auth/line"
+						class="flex items-center justify-center gap-2 w-full py-2.5 bg-[#06C755] hover:bg-[#05b34d] text-white text-sm font-medium rounded-lg transition-colors"
+					>
+						{$t('line.loginWith')}
+					</a>
+				</div>
+			{/if}
 		</div>
 
 		<p class="text-center text-sm text-gray-500 mt-6">

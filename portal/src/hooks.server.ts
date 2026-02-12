@@ -3,6 +3,12 @@ import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { verifyToken } from '$lib/server/auth';
 
+const DEV_JWT_SECRET = 'tcex-dev-jwt-secret-do-not-use-in-production';
+
+function getJwtSecret(platform: App.Platform | undefined): string {
+	return platform?.env?.JWT_SECRET || DEV_JWT_SECRET;
+}
+
 const securityHeaders: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
 
@@ -14,7 +20,7 @@ const securityHeaders: Handle = async ({ event, resolve }) => {
 			"style-src 'self' 'unsafe-inline'",
 			"img-src 'self' data: https:",
 			"font-src 'self'",
-			"connect-src 'self' wss: ws:",
+			"connect-src 'self' wss: ws: https://access.line.me https://api.line.me",
 			"frame-ancestors 'none'",
 			"base-uri 'self'",
 			"form-action 'self'"
@@ -38,13 +44,16 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
 	if (accessToken) {
-		const payload = await verifyToken(accessToken);
+		const jwtSecret = getJwtSecret(event.platform);
+		const payload = await verifyToken(accessToken, jwtSecret);
 		if (payload && payload.type === 'access') {
 			event.locals.user = {
 				id: payload.sub,
 				email: payload.email,
 				displayName: payload.displayName,
-				kycLevel: payload.kycLevel
+				kycLevel: payload.kycLevel,
+				emailVerified: payload.emailVerified ?? false,
+				totpEnabled: payload.totpEnabled ?? false
 			};
 		}
 	}

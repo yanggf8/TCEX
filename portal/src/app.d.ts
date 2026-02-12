@@ -12,6 +12,8 @@ declare global {
 				email: string;
 				displayName: string | null;
 				kycLevel: number;
+				emailVerified: boolean;
+				totpEnabled: boolean;
 			} | null;
 		}
 		// interface PageData {}
@@ -21,6 +23,11 @@ declare global {
 				DB: D1Database;
 				SESSIONS: KVNamespace;
 				ENGINE?: Fetcher;
+				JWT_SECRET: string;
+				DOCUMENTS?: R2Bucket;
+				LINE_CHANNEL_ID?: string;
+				LINE_CHANNEL_SECRET?: string;
+				LINE_REDIRECT_URI?: string;
 			};
 			context: ExecutionContext;
 		}
