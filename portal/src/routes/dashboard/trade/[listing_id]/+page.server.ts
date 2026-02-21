@@ -58,6 +58,21 @@ export const load: PageServerLoad = async ({ params, locals, platform }) => {
 		.bind(params.listing_id)
 		.all();
 
+	// Load initial orderbook snapshot from engine
+	let initialOrderbook = null;
+	if (platform.env.ENGINE) {
+		try {
+			const res = await platform.env.ENGINE.fetch(
+				`https://tcex-engine/v1/listing/${params.listing_id}/orderbook?depth=20`
+			);
+			if (res.ok) {
+				initialOrderbook = await res.json();
+			}
+		} catch {
+			// Engine unavailable — frontend will populate via WebSocket
+		}
+	}
+
 	return {
 		listing,
 		availableBalance: wallet?.available_balance || '0',
@@ -77,6 +92,7 @@ export const load: PageServerLoad = async ({ params, locals, platform }) => {
 			price: t.price,
 			quantity: t.quantity,
 			createdAt: t.created_at
-		}))
+		})),
+		initialOrderbook
 	};
 };

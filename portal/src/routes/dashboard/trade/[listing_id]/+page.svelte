@@ -33,6 +33,9 @@
 
 	onMount(() => {
 		setInitialTrades(data.recentTrades);
+		if (data.initialOrderbook) {
+			setOrderbookSnapshot(data.initialOrderbook);
+		}
 		connectWS(data.listing.id);
 		cleanupOrderbook = initOrderbookStore();
 		cleanupTrades = initTradesStore();
