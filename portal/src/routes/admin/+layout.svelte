@@ -5,7 +5,8 @@
 	const navItems = [
 		{ href: '/admin', label: 'OVERVIEW', exact: true },
 		{ href: '/admin/kyc', label: 'KYC REVIEW' },
-		{ href: '/admin/users', label: 'USERS' }
+		{ href: '/admin/users', label: 'USERS' },
+		{ href: '/admin/distributions', label: 'DISTRIBUTIONS' }
 	];
 
 	function isActive(href: string, exact = false) {
