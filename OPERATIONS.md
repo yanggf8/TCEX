@@ -36,8 +36,13 @@ npx wrangler d1 execute tcex-db --remote \
 | `GOOGLE_CLIENT_ID` | Google OAuth 用戶端 ID | Google Cloud Console |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth 用戶端密鑰 | Google Cloud Console |
 | `GOOGLE_REDIRECT_URI` | `https://tcex-portal.pages.dev/api/v1/auth/google/callback` | 固定值 |
+| `LINE_CHANNEL_ID` | LINE Login Channel ID | [LINE Developers Console](https://developers.line.biz/) |
+| `LINE_CHANNEL_SECRET` | LINE Login Channel Secret | LINE Developers Console |
+| `LINE_REDIRECT_URI` | `https://tcex-portal.pages.dev/api/v1/auth/line/callback` | 固定值 |
 
-> SMS OTP（手機驗證）目前為開發模式：系統會接受任意 6 位數字作為驗證碼。正式啟用需接入 Twilio，詳見第六節。
+> SMS OTP（手機驗證）：OTP 邏輯完整，但 Twilio 未接入，SMS 實際不傳送。正式啟用需接入 Twilio，詳見第六節。
+>
+> LINE 登入：程式碼完整，但須設定上方三個 LINE 環境變數後才可用，未設定時點擊回傳 503。
 
 ---
 
@@ -198,6 +203,7 @@ npx wrangler d1 execute tcex-db --remote \
 | KYC 文件審閱 | ✅ 後台可直接點擊查看文件圖片 | — |
 | 掛牌管理 | ✅ `/admin/listings` 介面可新增、暫停、恢復 | — |
 | Email 通知 | ✅ KYC 審核結果、收入分成入帳、出金受理 已上線 | LINE 推播通知（未來擴充） |
+| LINE 登入 | 程式碼完整，但環境變數未設定，點擊回傳 503 | 在 Cloudflare 設定 LINE_CHANNEL_ID/SECRET/REDIRECT_URI |
 | 2FA 強制 | 選用，不強制 | 可設定高額交易必須啟用 2FA |
 
 ---
