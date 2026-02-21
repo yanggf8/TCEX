@@ -485,6 +485,14 @@ const translations: Record<Locale, Record<string, string>> = {
 		'line.linked': '已連結',
 		'line.loginWith': '使用 LINE 登入',
 
+		// Google
+		'google.title': 'Google 帳號',
+		'google.description': '連結 Google 帳號以快速登入。',
+		'google.link': '連結 Google 帳號',
+		'google.unlink': '取消連結',
+		'google.linked': '已連結',
+		'google.loginWith': '使用 Google 登入',
+
 		// Common
 		'common.comingSoon': '即將推出',
 		'common.learnMore': '了解更多',
@@ -973,6 +981,14 @@ const translations: Record<Locale, Record<string, string>> = {
 		'line.unlink': 'Unlink',
 		'line.linked': 'Linked',
 		'line.loginWith': 'Login with LINE',
+
+		// Google
+		'google.title': 'Google Account',
+		'google.description': 'Link your Google account for quick login.',
+		'google.link': 'Link Google Account',
+		'google.unlink': 'Unlink',
+		'google.linked': 'Linked',
+		'google.loginWith': 'Continue with Google',
 
 		// Common
 		'common.comingSoon': 'Coming Soon',
