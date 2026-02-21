@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId } from '$lib/server/auth';
+import { sendNotification, kycApprovedEmail, kycRejectedEmail } from '$lib/server/notifications';
 
 export const POST: RequestHandler = async ({ params, request, locals, platform, getClientAddress }) => {
 	if (!locals.user) {
@@ -40,11 +41,14 @@ export const POST: RequestHandler = async ({ params, request, locals, platform, 
 	const applicationId = params.id;
 	const now = new Date().toISOString();
 
-	// Load application
+	// Load application + user email for notification
 	const app = await db
-		.prepare("SELECT id, user_id, level, status FROM kyc_applications WHERE id = ?")
+		.prepare(`SELECT ka.id, ka.user_id, ka.level, ka.status,
+			u.email, u.display_name
+			FROM kyc_applications ka JOIN users u ON u.id = ka.user_id
+			WHERE ka.id = ?`)
 		.bind(applicationId)
-		.first<{ id: string; user_id: string; level: number; status: string }>();
+		.first<{ id: string; user_id: string; level: number; status: string; email: string; display_name: string | null }>();
 
 	if (!app) {
 		return json({ error: { code: 'NOT_FOUND' } }, { status: 404 });
@@ -85,6 +89,23 @@ export const POST: RequestHandler = async ({ params, request, locals, platform, 
 			now
 		)
 		.run();
+
+	// Send notification email (non-blocking)
+	if (body.action === 'approve') {
+		sendNotification(
+			platform.env.RESEND_API_KEY,
+			app.email,
+			'【TCEX】身份驗證 L2 審核通過',
+			kycApprovedEmail(app.display_name)
+		);
+	} else {
+		sendNotification(
+			platform.env.RESEND_API_KEY,
+			app.email,
+			'【TCEX】身份驗證 L2 審核結果通知',
+			kycRejectedEmail(app.display_name, body.notes!.trim())
+		);
+	}
 
 	return json({ status: newStatus });
 };

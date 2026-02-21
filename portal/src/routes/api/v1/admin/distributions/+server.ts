@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId } from '$lib/server/auth';
+import { sendNotification, distributionEmail } from '$lib/server/notifications';
 
 export const POST: RequestHandler = async ({ request, locals, platform, getClientAddress }) => {
 	if (!locals.user) {
@@ -61,19 +62,22 @@ export const POST: RequestHandler = async ({ request, locals, platform, getClien
 	const now = new Date().toISOString();
 	const today = now.slice(0, 10);
 
-	// Get all holders with positive positions
+	// Get all holders with positive positions + email for notifications
 	const { results: positions } = await db
 		.prepare(`
 			SELECT p.user_id, p.quantity,
-				w.id as wallet_id, w.available_balance
+				w.id as wallet_id, w.available_balance,
+				u.email, u.display_name
 			FROM positions p
 			JOIN wallets w ON w.user_id = p.user_id AND w.currency = 'TWD'
+			JOIN users u ON u.id = p.user_id
 			WHERE p.listing_id = ? AND CAST(p.quantity AS REAL) > 0
 		`)
 		.bind(body.listingId)
 		.all<{
 			user_id: string; quantity: string;
 			wallet_id: string; available_balance: string;
+			email: string; display_name: string | null;
 		}>();
 
 	if (positions.length === 0) {
@@ -136,6 +140,14 @@ export const POST: RequestHandler = async ({ request, locals, platform, getClien
 		await db.prepare(`
 			UPDATE wallets SET available_balance = ?, updated_at = ? WHERE id = ?
 		`).bind(balanceAfter.toFixed(2), now, pos.wallet_id).run();
+
+		// Notify holder (non-blocking)
+		sendNotification(
+			platform.env.RESEND_API_KEY,
+			pos.email,
+			`【TCEX】${listing.symbol} 收入分成入帳通知`,
+			distributionEmail(pos.display_name, listing.symbol, paymentAmountStr, balanceAfter.toFixed(2))
+		);
 	}
 
 	// Audit log

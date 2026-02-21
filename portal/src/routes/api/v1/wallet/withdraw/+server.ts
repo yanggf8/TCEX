@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { withdraw } from '$lib/server/wallet';
 import { require2fa } from '$lib/server/2fa-guard';
+import { sendNotification, withdrawalEmail } from '$lib/server/notifications';
 
 export const POST: RequestHandler = async ({ request, locals, platform }) => {
 	if (!locals.user) {
@@ -50,6 +51,15 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			{ status: 400 }
 		);
 	}
+
+	// Notify user (non-blocking)
+	const displayName = locals.user.displayName ?? null;
+	sendNotification(
+		platform.env.RESEND_API_KEY,
+		locals.user.email,
+		'【TCEX】出金申請已受理',
+		withdrawalEmail(displayName, result.transaction!.amount, result.wallet!.availableBalance)
+	);
 
 	return json({ wallet: result.wallet, transaction: result.transaction });
 };
