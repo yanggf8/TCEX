@@ -250,6 +250,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		'dashboard.action.deposit': '入金',
 		'dashboard.action.browse': '瀏覽標的',
 		'dashboard.recentActivity': '近期活動',
+		'dashboard.viewAll': '查看全部',
 
 		// Listings
 		'listing.title': '上架標的',
@@ -747,6 +748,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		'dashboard.action.deposit': 'Deposit',
 		'dashboard.action.browse': 'Browse Listings',
 		'dashboard.recentActivity': 'Recent Activity',
+		'dashboard.viewAll': 'View All',
 
 		// Listings
 		'listing.title': 'Listings',

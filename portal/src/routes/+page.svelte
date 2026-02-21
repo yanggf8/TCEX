@@ -1,5 +1,14 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
+	let { data } = $props();
+
+	const s = data.marketStats;
+
+	function fmtCurrency(n: number): string {
+		if (n >= 1_000_000) return `NT$${(n / 1_000_000).toFixed(1)}M`;
+		if (n >= 1_000) return `NT$${(n / 1_000).toFixed(0)}K`;
+		return `NT$${n.toFixed(0)}`;
+	}
 </script>
 
 <svelte:head>
@@ -48,19 +57,19 @@
 	<section class="container mx-auto px-4 py-12">
 		<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
 			<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
-				<div class="text-3xl font-bold text-primary-600">NT$--</div>
+				<div class="text-3xl font-bold text-primary-600">{s ? fmtCurrency(s.totalVolume) : 'NT$--'}</div>
 				<div class="text-gray-500 text-sm mt-1">{$t('home.stats.volume')}</div>
 			</div>
 			<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
-				<div class="text-3xl font-bold text-primary-600">--</div>
+				<div class="text-3xl font-bold text-primary-600">{s ? s.activeListings : '--'}</div>
 				<div class="text-gray-500 text-sm mt-1">{$t('home.stats.listings')}</div>
 			</div>
 			<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
-				<div class="text-3xl font-bold text-primary-600">--</div>
+				<div class="text-3xl font-bold text-primary-600">{s ? s.userCount.toLocaleString() : '--'}</div>
 				<div class="text-gray-500 text-sm mt-1">{$t('home.stats.users')}</div>
 			</div>
 			<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
-				<div class="text-3xl font-bold text-primary-600">NT$--</div>
+				<div class="text-3xl font-bold text-primary-600">{s ? fmtCurrency(s.todayDistributions) : 'NT$--'}</div>
 				<div class="text-gray-500 text-sm mt-1">{$t('home.stats.dividends')}</div>
 			</div>
 		</div>

@@ -63,16 +63,56 @@
 		</div>
 	</div>
 
-	<!-- Recent Activity (Empty State) -->
+	<!-- Recent Activity -->
 	<div>
 		<h2 class="text-lg font-semibold text-gray-900 mb-3">{$t('dashboard.recentActivity')}</h2>
-		<div class="bg-white rounded-xl border border-gray-200 p-8 text-center">
-			<div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-				<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-				</svg>
+		{#if data.recentActivity.length === 0}
+			<div class="bg-white rounded-xl border border-gray-200 p-8 text-center">
+				<div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+					<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				</div>
+				<p class="text-gray-500">{$t('common.noData')}</p>
 			</div>
-			<p class="text-gray-500">{$t('common.noData')}</p>
-		</div>
+		{:else}
+			<div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+				{#each data.recentActivity as act}
+					{@const isCredit = ['deposit', 'distribution', 'trade_credit'].includes(act.type)}
+					{@const typeLabel = act.type === 'deposit' ? '入金'
+						: act.type === 'withdrawal' ? '出金'
+						: act.type === 'distribution' ? '收入分成'
+						: act.type === 'trade_debit' ? '買入'
+						: act.type === 'trade_credit' ? '賣出'
+						: act.type === 'lock' ? '委託鎖定'
+						: act.type === 'unlock' ? '委託解鎖'
+						: act.type}
+					<div class="flex items-center justify-between px-4 py-3">
+						<div class="flex items-center gap-3">
+							<div class="w-8 h-8 rounded-full flex items-center justify-center {isCredit ? 'bg-green-50' : 'bg-red-50'}">
+								<svg class="w-4 h-4 {isCredit ? 'text-green-500' : 'text-red-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={isCredit ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'} />
+								</svg>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-gray-900">{typeLabel}</p>
+								{#if act.description}
+									<p class="text-xs text-gray-400">{act.description}</p>
+								{/if}
+							</div>
+						</div>
+						<div class="text-right">
+							<p class="text-sm font-semibold {isCredit ? 'text-green-600' : 'text-gray-700'}">
+								{isCredit ? '+' : '-'}NT$ {parseFloat(act.amount).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+							</p>
+							<p class="text-xs text-gray-400">{new Date(act.createdAt).toLocaleDateString('zh-TW')}</p>
+						</div>
+					</div>
+				{/each}
+				<div class="px-4 py-2 text-center">
+					<a href="/dashboard/wallet" class="text-xs text-primary-600 hover:underline">{$t('dashboard.viewAll')}</a>
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
