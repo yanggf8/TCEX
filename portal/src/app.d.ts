@@ -14,6 +14,7 @@ declare global {
 				kycLevel: number;
 				emailVerified: boolean;
 				totpEnabled: boolean;
+				role?: string;
 			} | null;
 		}
 		// interface PageData {}
