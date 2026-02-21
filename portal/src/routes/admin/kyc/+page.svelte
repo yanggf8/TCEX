@@ -128,6 +128,7 @@
 
 				<!-- Expanded Details -->
 				{#if isExpanded}
+					{@const docs = data.documentsMap[app.id] ?? []}
 					<div class="px-5 pb-5 border-t border-[#1a1a1a]">
 						<!-- Info Grid -->
 						<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 mb-5">
@@ -147,6 +148,29 @@
 								<div class="text-[12px] text-[#a1a1aa]">{app.address || '—'}</div>
 							</div>
 						</div>
+
+						<!-- Documents -->
+						{#if docs.length > 0}
+							<div class="mb-4">
+								<div class="text-[9px] tracking-[0.2em] text-[#3f3f46] mb-2">DOCUMENTS ({docs.length})</div>
+								<div class="flex flex-wrap gap-2">
+									{#each docs as doc}
+										<a
+											href="/api/v1/admin/kyc/documents/{doc.id}"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="flex items-center gap-2 px-3 py-2 border border-[#27272a] bg-[#0f0f10] hover:border-[#52525b] hover:bg-[#141414] transition-colors"
+										>
+											<div>
+												<div class="text-[10px] text-[#a1a1aa] tracking-wider">{doc.document_type.toUpperCase().replace(/_/g, ' ')}</div>
+												<div class="text-[9px] text-[#3f3f46]">{doc.file_name}</div>
+											</div>
+											<span class="text-[9px] text-[#52525b] ml-1">&#x2197;</span>
+										</a>
+									{/each}
+								</div>
+							</div>
+						{/if}
 
 						{#if app.reviewer_notes}
 							<div class="border border-[#27272a] bg-[#0f0f10] px-4 py-3 mb-4">

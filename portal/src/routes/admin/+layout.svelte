@@ -6,6 +6,7 @@
 		{ href: '/admin', label: 'OVERVIEW', exact: true },
 		{ href: '/admin/kyc', label: 'KYC REVIEW' },
 		{ href: '/admin/users', label: 'USERS' },
+		{ href: '/admin/listings', label: 'LISTINGS' },
 		{ href: '/admin/distributions', label: 'DISTRIBUTIONS' }
 	];
 

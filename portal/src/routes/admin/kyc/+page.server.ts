@@ -27,5 +27,27 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 			phone: string | null; document_count: number;
 		}>();
 
-	return { applications: applications.results, status };
+	// Fetch document metadata for all applications in this batch
+	const appIds = applications.results.map(a => a.id);
+	let documentsMap: Record<string, { id: string; document_type: string; file_name: string; content_type: string }[]> = {};
+
+	if (appIds.length > 0) {
+		const placeholders = appIds.map(() => '?').join(',');
+		const docs = await db
+			.prepare(`SELECT id, application_id, document_type, file_name, content_type FROM kyc_documents WHERE application_id IN (${placeholders})`)
+			.bind(...appIds)
+			.all<{ id: string; application_id: string; document_type: string; file_name: string; content_type: string }>();
+
+		for (const doc of docs.results) {
+			if (!documentsMap[doc.application_id]) documentsMap[doc.application_id] = [];
+			documentsMap[doc.application_id].push({
+				id: doc.id,
+				document_type: doc.document_type,
+				file_name: doc.file_name,
+				content_type: doc.content_type
+			});
+		}
+	}
+
+	return { applications: applications.results, documentsMap, status };
 };
