@@ -55,25 +55,22 @@ npx wrangler d1 execute tcex-db --remote \
 
 ---
 
-### 1.4 新增掛牌產品（目前無 UI，需手動執行）
+### 1.4 新增掛牌產品
 
-系統已有 15 個種子產品（測試用），正式上線需依實際合約新增。範例：
+**操作頁面**：`/admin/listings`
 
-```bash
-npx wrangler d1 execute tcex-db --remote --command "
-INSERT INTO listings (id, product_id, product_type, symbol, name_zh, name_en,
-  unit_price, total_units, available_units, yield_rate, risk_level, status, listed_at, created_at, updated_at)
-VALUES (
-  'lst_真實ID', 'prod_rbo', 'rbo',
-  'RBO-台灣咖啡001', '台灣咖啡股份有限公司', 'Taiwan Coffee Co.',
-  '100', '10000', '10000',
-  '0.08', 'medium', 'active',
-  datetime('now'), datetime('now'), datetime('now')
-)"
-```
+1. 點擊右上角 **+ NEW LISTING**
+2. 選擇對應的 Product（下拉選單列出 `products` 資料表中的所有產品）
+3. 填寫代號（Symbol）、中英文名稱、單價、總發行單位數、殖利率（選填）、風險等級
+4. 點擊 **CREATE LISTING** — 系統自動設定 `available_units = total_units`、`status = active`
 
-> 📌 `product_id` 需對應 `products` 資料表中已存在的 ID，可先查詢：
-> `SELECT id, name_zh FROM products`
+> ⚠️ 若需要的 Product 不在下拉選單中，需先以 SQL 新增至 `products` 資料表：
+> ```bash
+> npx wrangler d1 execute tcex-db --remote \
+>   --command "INSERT INTO products (id, name_zh, name_en, product_type, created_at) VALUES ('prod_新ID', '中文名', 'English Name', 'rbo', datetime('now'))"
+> ```
+
+**暫停 / 恢復交易**：在掛牌列表中點擊 ⏸ 暫停或 ▶ 恢復，立即生效。
 
 ---
 
@@ -89,41 +86,17 @@ VALUES (
 
 ### 2.2 處理入金請求（人工流程）
 
-**目前流程**（MVP 階段，無自動銀行對接）：
+**目前流程**（MVP 階段，模擬入帳）：
 
 1. 用戶透過銀行轉帳將資金匯至 TCEX 指定帳戶
-2. 用戶在平台「錢包 → 入金」提交入金申請，填寫金額與轉帳備註
-3. 營運人員核對銀行帳單，確認款項到帳後，手動執行入帳指令：
+2. 營運人員確認款項到帳後，前往後台執行入帳：
 
-```bash
-# 先查詢用戶 ID
-npx wrangler d1 execute tcex-db --remote \
-  --command "SELECT id, email FROM users WHERE email = 'user@example.com'"
+**操作頁面**：`/admin/users`
 
-# 查詢錢包 ID
-npx wrangler d1 execute tcex-db --remote \
-  --command "SELECT id, available_balance FROM wallets WHERE user_id = 'USER_ID'"
-
-# 執行入帳（以 50000 TWD 為例）
-npx wrangler d1 execute tcex-db --remote --command "
-BEGIN;
-UPDATE wallets SET
-  available_balance = CAST(available_balance AS REAL) + 50000,
-  total_deposited = CAST(total_deposited AS REAL) + 50000,
-  updated_at = datetime('now')
-WHERE id = 'WALLET_ID';
-INSERT INTO wallet_transactions
-  (id, wallet_id, user_id, type, amount, fee, balance_before, balance_after,
-   reference_type, description, status, created_at)
-VALUES (
-  lower(hex(randomblob(16))), 'WALLET_ID', 'USER_ID',
-  'deposit', '50000.00', '0',
-  (SELECT available_balance FROM wallets WHERE id = 'WALLET_ID'),
-  CAST((SELECT available_balance FROM wallets WHERE id = 'WALLET_ID') AS REAL) + 50000,
-  'bank_transfer', '銀行轉帳入金', 'completed', datetime('now')
-);
-COMMIT"
-```
+1. 搜尋目標用戶（Email 或姓名）
+2. 點擊該用戶列的 **DEPOSIT** 按鈕
+3. 輸入入帳金額（TWD）與備注（選填）
+4. 點擊 **CONFIRM DEPOSIT** — 系統立即更新餘額並寫入 `wallet_transactions`（`reference_type = admin_mock`）
 
 > 📌 未來規劃：接入玉山銀行或台新銀行的企業網銀 API，實現自動對帳。
 
@@ -219,11 +192,11 @@ COMMIT"
 
 | 功能 | 現況 | 正式啟用條件 |
 |------|------|------------|
-| 手機 OTP | 任意 6 位數字即通過 | 接入 Twilio（需信用卡，約 USD $0.05/則） |
-| 入金 | 人工對帳後手動執行 SQL | 接入銀行 API（玉山 / 台新企業網銀） |
+| 手機 OTP | OTP 邏輯完整，但 Twilio 未接入（SMS 不傳送） | 接入 Twilio（需信用卡，約 USD $0.05/則） |
+| 入金 | ✅ 後台 DEPOSIT 按鈕一鍵模擬入帳 | 接入銀行 API（玉山 / 台新企業網銀）自動對帳 |
 | 出金 | 立即完成，需人工匯款 | 建立待審核佇列 + 銀行 API |
-| KYC 文件審閱 | 文件數量顯示，需到 Cloudflare R2 後台查看圖片 | 在後台直接顯示 R2 圖片（presigned URL） |
-| 掛牌管理 | 需手動執行 SQL | 建立 `/admin/listings` 管理介面 |
+| KYC 文件審閱 | ✅ 後台可直接點擊查看文件圖片 | — |
+| 掛牌管理 | ✅ `/admin/listings` 介面可新增、暫停、恢復 | — |
 | Email 通知 | ✅ KYC 審核結果、收入分成入帳、出金受理 已上線 | LINE 推播通知（未來擴充） |
 | 2FA 強制 | 選用，不強制 | 可設定高額交易必須啟用 2FA |
 
@@ -285,8 +258,9 @@ npx wrangler d1 execute tcex-db --remote \
 | 網址 | 功能 |
 |------|------|
 | `/admin` | 系統總覽（用戶數、待審 KYC、交易量） |
-| `/admin/kyc` | KYC L2 申請審核 |
-| `/admin/users` | 用戶管理（搜尋、凍結） |
+| `/admin/kyc` | KYC L2 申請審核（含文件預覽） |
+| `/admin/users` | 用戶管理（搜尋、凍結/解凍、模擬入帳） |
+| `/admin/listings` | 掛牌管理（新增、暫停/恢復） |
 | `/admin/distributions` | 收入分成發放 |
 
 ---
@@ -311,8 +285,9 @@ npx wrangler d1 execute tcex-db --remote \
 
 **後台管理**
 - 系統總覽（用戶數、待審 KYC、交易量、活躍委託）
-- KYC L2 審核（核准/拒絕，含審核備注與 Email 通知）
-- 用戶管理（搜尋、凍結/解凍）
+- KYC L2 審核（核准/拒絕，含審核備注與 Email 通知、文件圖片直接預覽）
+- 用戶管理（搜尋、凍結/解凍、模擬入帳）
+- 掛牌管理（新增掛牌、暫停/恢復交易）
 - 收入分成發放（選標的 → 輸入金額 → 批量入帳 → Email 通知持倉者）
 
-*文件最後更新：民國115年2月*
+*文件最後更新：民國115年2月（KYC 文件預覽、掛牌管理後台、模擬入帳上線）*
