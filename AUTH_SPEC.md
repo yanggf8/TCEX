@@ -14,11 +14,19 @@ The authenticated dashboard pages (`/dashboard/*`) are part of the same SvelteKi
 - PBKDF2-SHA256 hashing (100k iterations, 16-byte salt)
 - Account lockout after 5 failed attempts (15-minute cooldown)
 
+### Social Login: Google
+- Google OAuth 2.0 integration
+- Scope: `openid`, `profile`, `email`
+- New users: auto-create account with verified email (no password required)
+- Existing users with matching email: auto-link and log in
+- Linked users: one-click login via Google
+
 ### Social Login: LINE
 - LINE Login OAuth 2.1 integration
-- Scope: `profile`, `openid`, `email`
-- Link LINE account to TCEX account (not standalone registration)
-- LINE Notify for trade confirmations and alerts
+- Scope: `profile`, `openid`
+- Available on login and register pages
+- Link/unlink from settings page
+- CSRF protection via KV-stored state parameter
 
 ### Two-Factor Authentication (2FA)
 - **Mandatory** for all financial transactions (orders, withdrawals)
