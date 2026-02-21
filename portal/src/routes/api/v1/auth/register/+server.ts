@@ -11,7 +11,7 @@ import {
 	ACCESS_TOKEN_MAX_AGE,
 	REFRESH_TOKEN_MAX_AGE
 } from '$lib/server/auth';
-import { generateOtp } from '$lib/server/email';
+import { generateOtp, createEmailSender } from '$lib/server/email';
 
 export const POST: RequestHandler = async ({ request, platform, cookies, getClientAddress }) => {
 	if (!platform?.env?.DB) {
@@ -91,8 +91,13 @@ export const POST: RequestHandler = async ({ request, platform, cookies, getClie
 		.bind(generateId(), userId, otp, otpExpiry, now)
 		.run();
 
-	// Send verification email (console in dev)
-	console.log(`[EMAIL] Verification code for ${email.toLowerCase()}: ${otp}`);
+	// Send verification email
+	const emailSender = createEmailSender(platform.env.RESEND_API_KEY);
+	await emailSender.send(
+		email.toLowerCase(),
+		'【TCEX】Email 驗證碼',
+		`<p>您的驗證碼為：<strong style="font-size:24px;letter-spacing:4px">${otp}</strong></p><p>驗證碼將於 10 分鐘後失效，請勿將此碼告知他人。</p>`
+	);
 
 	// Create tokens
 	const tokenPayload = {

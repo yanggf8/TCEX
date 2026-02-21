@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId } from '$lib/server/auth';
-import { generateOtp } from '$lib/server/email';
+import { generateOtp, createEmailSender } from '$lib/server/email';
 import { checkRateLimit } from '$lib/server/rate-limit';
 
 export const POST: RequestHandler = async ({ locals, platform, getClientAddress }) => {
@@ -48,8 +48,13 @@ export const POST: RequestHandler = async ({ locals, platform, getClientAddress 
 		.bind(generateId(), locals.user.id, otp, otpExpiry, now)
 		.run();
 
-	// Send email (console in dev)
-	console.log(`[EMAIL] Verification code for ${user.email}: ${otp}`);
+	// Send verification email
+	const emailSender = createEmailSender(platform.env.RESEND_API_KEY);
+	await emailSender.send(
+		user.email,
+		'【TCEX】Email 驗證碼（重新發送）',
+		`<p>您的驗證碼為：<strong style="font-size:24px;letter-spacing:4px">${otp}</strong></p><p>驗證碼將於 10 分鐘後失效，請勿將此碼告知他人。</p>`
+	);
 
 	// Audit log
 	await db

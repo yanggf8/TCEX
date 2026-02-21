@@ -21,6 +21,7 @@ vite.config.ts.timestamp-*
 .env.*
 !.env.example
 !.env.test
+.secrets
 
 # OS
 .DS_Store

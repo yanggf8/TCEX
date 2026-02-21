@@ -1,5 +1,5 @@
 export interface EmailSender {
-	send(to: string, subject: string, body: string): Promise<void>;
+	send(to: string, subject: string, html: string): Promise<void>;
 }
 
 export function generateOtp(): string {
@@ -9,7 +9,35 @@ export function generateOtp(): string {
 }
 
 export class ConsoleEmailSender implements EmailSender {
-	async send(to: string, subject: string, body: string): Promise<void> {
-		console.log(`[EMAIL] To: ${to} | Subject: ${subject} | Body: ${body}`);
+	async send(to: string, subject: string, html: string): Promise<void> {
+		console.log(`[EMAIL] To: ${to} | Subject: ${subject} | Body: ${html}`);
 	}
+}
+
+export class ResendEmailSender implements EmailSender {
+	constructor(
+		private readonly apiKey: string,
+		private readonly from: string = 'TCEX <noreply@tcex.tw>'
+	) {}
+
+	async send(to: string, subject: string, html: string): Promise<void> {
+		const res = await fetch('https://api.resend.com/emails', {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${this.apiKey}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ from: this.from, to, subject, html })
+		});
+
+		if (!res.ok) {
+			const err = await res.text();
+			throw new Error(`Resend error ${res.status}: ${err}`);
+		}
+	}
+}
+
+export function createEmailSender(apiKey?: string): EmailSender {
+	if (apiKey) return new ResendEmailSender(apiKey);
+	return new ConsoleEmailSender();
 }

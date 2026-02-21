@@ -28,6 +28,7 @@ declare global {
 				LINE_CHANNEL_ID?: string;
 				LINE_CHANNEL_SECRET?: string;
 				LINE_REDIRECT_URI?: string;
+				RESEND_API_KEY?: string;
 			};
 			context: ExecutionContext;
 		}
